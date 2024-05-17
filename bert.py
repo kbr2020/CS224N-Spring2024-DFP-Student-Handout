@@ -50,6 +50,7 @@ class BertSelfAttention(nn.Module):
     #   [bs, seq_len, num_attention_heads * attention_head_size = hidden_size].
 
     ### TODO
+    x = 2
     raise NotImplementedError
 
 
