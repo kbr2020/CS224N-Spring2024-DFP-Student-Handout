@@ -61,8 +61,8 @@ class AdamW(Optimizer):
 
                 if len(state) == 0:
                     state["t"] = 0
-                    state["f_mom"] = torch.zeros(p.data.shape).to(device)
-                    state["s_mom"] = torch.zeros(p.data.shape).to(device)
+                    state["f_mom"] = torch.zeros(p.data.shape)
+                    state["s_mom"] = torch.zeros(p.data.shape)
                 
                 beta1 = group["betas"][0]
                 beta2 = group["betas"][1]
