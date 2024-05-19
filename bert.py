@@ -127,7 +127,7 @@ class BertLayer(nn.Module):
     ### 
 
     att = self.self_attention(hidden_states,attention_mask)
-    norm_add = self.add_norm(hidden_states,att.self.attention_dense,self.attention_dropout,self.attention_layer_norm)
+    norm_add = self.add_norm(hidden_states,att,self.attention_dense,self.attention_dropout,self.attention_layer_norm)
 
 
     interm_dense_value = self.interm_dense(norm_add)
