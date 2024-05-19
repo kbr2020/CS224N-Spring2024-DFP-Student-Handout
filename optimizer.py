@@ -70,9 +70,9 @@ class AdamW(Optimizer):
 
                 state["t"] = state["t"] + 1
                 state["f_mom"] = beta1*state["f_mom"] + (1-beta1)*grad
-                state["s_mom"] = beta2*state["s_mom"] + (1-beta2)*(grad @ grad)
+                state["s_mom"] = beta2*state["s_mom"] + (1-beta2)*(torch.square(grad))
 
-                alpha_t = alpha*math.sqrt(1-beta2**state[t])/(1-beta1**state[t])
+                alpha_t = alpha*math.sqrt(1-beta2**state["t"])/(1-beta1**state["t"])
                 p.data = p.data - (alpha_t*state["f_mom"])/(torch.sqrt(state["s_mom"]) + group["eps"])
                 p.data = p.data - alpha*group["weight_decay"]*p.data
 
