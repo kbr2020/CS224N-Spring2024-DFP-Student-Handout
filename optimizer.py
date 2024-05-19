@@ -59,7 +59,6 @@ class AdamW(Optimizer):
                 # 4. Apply weight decay after the main gradient-based updates.
                 # Refer to the default project handout for more details.
 
-                device = torch.device('cuda') if args.use_gpu else torch.device('cpu')
                 if len(state) == 0:
                     state["t"] = 0
                     state["f_mom"] = torch.zeros(p.data.shape).to(device)
