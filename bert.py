@@ -57,7 +57,7 @@ class BertSelfAttention(nn.Module):
 
     att = torch.matmul(S,value)
 
-    att = att.transpose(1,2).view(bs,seq_len,-1)
+    att = att.transpose(1,2).contiguous().view(bs,seq_len,-1)
     return att
 
   def forward(self, hidden_states, attention_mask):
