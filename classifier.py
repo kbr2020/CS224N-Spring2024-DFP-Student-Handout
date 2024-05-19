@@ -44,12 +44,12 @@ class BertSentimentClassifier(torch.nn.Module):
         for param in self.bert.parameters():
             if config.fine_tune_mode == 'last-linear-layer':
                 param.requires_grad = False
-            elif config.fine_tune_mode == 'full-model':
+            elif config.fine_tune_mode == 'fu ll-model':
                 param.requires_grad = True
 
         # Create any instance variables you need to classify the sentiment of BERT embeddings.
-        ### TODO
-        raise NotImplementedError
+        self.last_l = torch.nn.Linear(config.hidden_size,self.num_labels)
+        self.dropout = torch.nn.Dropout(config.hidden_dropout_prob)
 
 
     def forward(self, input_ids, attention_mask):
@@ -57,8 +57,10 @@ class BertSentimentClassifier(torch.nn.Module):
         # The final BERT contextualized embedding is the hidden state of [CLS] token (the first token).
         # HINT: You should consider what is an appropriate return value given that
         # the training loop currently uses F.cross_entropy as the loss function.
-        ### TODO
-        raise NotImplementedError
+        ### 
+        first_output = self.bert(input_ids,attention_mask)
+        logits = self.last_l(self.dropout(first_output))
+        return logits
 
 
 
