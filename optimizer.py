@@ -59,8 +59,24 @@ class AdamW(Optimizer):
                 # 4. Apply weight decay after the main gradient-based updates.
                 # Refer to the default project handout for more details.
 
-                ### TODO
-                raise NotImplementedError
+                device = "cuda" if torch.cuda.is_available() else "cpu"
+                if len(state) == 0:
+                    state["t"] = 0
+                    state["f_mom"] = torch.zeros(p.data.shape).to(device)
+                    state["s_mom"] = torch.zeros(p.data.shape).to(device)
+                
+                beta1 = group["betas"][0]
+                beta2 = group["betas"][1]
+
+                state["t"] = state["t"] + 1
+                state["f_mom"] = beta1*state["f_mom"] + (1-beta1)*grad
+                state["s_mom"] = beta2*state["s_mom"] + (1-beta2)*(grad @ grad)
+
+                alpha_t = alpha*math.sqrt(1-beta2**state[t])/(1-beta1**state[t])
+                p.data = p.data - (alpha_t*state["f_mom"])/(torch.sqrt(state["s_mom"]) + group["eps"])
+                p.data = p.data - alpha*group["weight_decay"]*p.data
+
+
 
 
         return loss
