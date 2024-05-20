@@ -252,7 +252,7 @@ def train_multitask(args):
             optimizer.zero_grad()
             logit = model.predict_paraphrase(b_ids1, b_mask1,
                            b_ids2, b_mask2)
-            loss = F.binary_cross_entropy(logit,b_labels, reduction='sum') / args.batch_size
+            loss = F.binary_cross_entropy_with_logits(logit.view(-1),b_labels.float(), reduction='sum') / args.batch_size
 
             loss.backward()
             optimizer.step()
@@ -270,7 +270,7 @@ def train_multitask(args):
 
             optimizer.zero_grad()
             logits = model.predict_sentiment(b_ids, b_mask)
-            loss = F.cross_entropy(logits, b_labels.view(-1), reduction='sum') / args.batch_size
+            loss = F.binary_cross_entropy_with_logits(logit.view(-1),b_labels.float(), reduction='sum') / args.batch_size
 
             loss.backward()
             optimizer.step()
