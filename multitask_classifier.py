@@ -190,7 +190,7 @@ def train_multitask(args):
     sst_dev_dataloader = DataLoader(sst_dev_data, shuffle=False, batch_size=args.batch_size,
                                     collate_fn=sst_dev_data.collate_fn)
 
-    para_train_data = SentencePairTestDataset(para_train_data, args)
+    para_train_data = SentencePairDataset(para_train_data, args)
     para_dev_data = SentencePairDataset(para_dev_data, args)
 
     para_train_dataloader = DataLoader(para_train_data, shuffle=True, batch_size=args.batch_size,
@@ -198,7 +198,7 @@ def train_multitask(args):
     para_dev_dataloader = DataLoader(para_dev_data, shuffle=False, batch_size=args.batch_size,
                                          collate_fn=para_dev_data.collate_fn)
 
-    sts_train_data = SentencePairTestDataset(sts_train_data, args)
+    sts_train_data = SentencePairDataset(sts_train_data, args)
     sts_dev_data = SentencePairDataset(sts_dev_data, args, isRegression=True)
 
     sts_train_dataloader = DataLoader(sts_train_data, shuffle=True, batch_size=args.batch_size,
@@ -259,9 +259,7 @@ def train_multitask(args):
 
             (b_ids1, b_mask1,
              b_ids2, b_mask2,
-             b_labels, b_sent_ids) = (batch['token_ids_1'], batch['attention_mask_1'],
-                          batch['token_ids_2'], batch['attention_mask_2'],
-                          batch['labels'], batch['sent_ids'])
+             b_labels, b_sent_ids) = (batch['token_ids_1'], batch['attention_mask_1'],batch['token_ids_2'], batch['attention_mask_2'],batch['labels'], batch['sent_ids'])
 
             b_ids1 = b_ids1.to(device)
             b_mask1 = b_mask1.to(device)
@@ -270,7 +268,7 @@ def train_multitask(args):
 
             optimizer.zero_grad()
             logit = model.predict_paraphrase(b_ids, b_mask)
-            loss = F.binary_cross_entropy(logit, reduction='sum') / args.batch_size
+            loss = F.binary_cross_entropy(logit,b_labels, reduction='sum') / args.batch_size
 
             loss.backward()
             optimizer.step()
@@ -292,7 +290,7 @@ def train_multitask(args):
 
             optimizer.zero_grad()
             logit = model.predict_similarity(b_ids, b_mask)
-            train_loss_par = F.binary_cross_entropy(logit, reduction='sum') / args.batch_size
+            train_loss_par = F.binary_cross_entropy(logit,b_labels, reduction='sum') / args.batch_size
 
             loss.backward()
             optimizer.step()
