@@ -297,7 +297,7 @@ def train_multitask(args):
             optimizer.zero_grad()
             logit = model.predict_similarity(b_ids1, b_mask1,
                            b_ids2, b_mask2)
-            train_loss_par = F.binary_cross_entropy(logit,b_labels, reduction='sum') / args.batch_size
+            train_loss_sts = loss = F.binary_cross_entropy_with_logits(logit.view(-1),b_labels.float(), reduction='sum') / args.batch_size
 
             loss.backward()
             optimizer.step()
@@ -308,8 +308,8 @@ def train_multitask(args):
 
 
         train_loss_par = train_loss_par / (num_batches_par)
-        train_loss_sts = train_loss_par / (num_batches_sts)
-        train_loss_sst = train_loss_par / (num_batches_sst)
+        train_loss_sts = train_loss_sts / (num_batches_sts)
+        train_loss_sst = train_loss_sst / (num_batches_sst)
 
         ''' train_acc, train_f1, *_ = model_eval_sst(sst_train_dataloader, model, device)
         dev_acc, dev_f1, *_ = model_eval_sst(sst_dev_dataloader, model, device) '''
