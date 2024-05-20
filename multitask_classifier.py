@@ -256,8 +256,6 @@ def train_multitask(args):
             num_batches_sst += 1
 
         for batch  in tqdm(para_train_dataloader , desc=f'train-{epoch}', disable=TQDM_DISABLE):
-            b_ids, b_mask, b_labels = (batch['token_ids'],
-                                       batch['attention_mask'], batch['labels'])
 
             (b_ids1, b_mask1,
              b_ids2, b_mask2,
