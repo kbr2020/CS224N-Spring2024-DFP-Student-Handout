@@ -66,6 +66,7 @@ class MultitaskBERT(nn.Module):
     def __init__(self, config):
         super(MultitaskBERT, self).__init__()
         self.bert = BertModel.from_pretrained('bert-base-uncased')
+        self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         # last-linear-layer mode does not require updating BERT paramters.
         assert config.fine_tune_mode in ["last-linear-layer", "full-model"]
         for param in self.bert.parameters():
@@ -111,7 +112,7 @@ class MultitaskBERT(nn.Module):
     def concatinate_two_sentence(self, input_ids_1, attention_mask_1,
                            input_ids_2, attention_mask_2):
         
-        sep_token_id = torch.tensor([int(BertTokenizer.sep_token_id)], dtype=torch.long, device=input_ids_1.device)
+        sep_token_id = torch.tensor([self.tokenizer.sep_token_id], dtype=torch.long, device=input_ids_1.device)
         batch_sep_token_id = sep_token_id.repeat(input_ids_1.shape[0], 1)
 
         
