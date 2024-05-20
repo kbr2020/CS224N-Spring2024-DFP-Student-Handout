@@ -23,7 +23,7 @@ from torch.utils.data import DataLoader
 from bert import BertModel
 from optimizer import AdamW
 from tqdm import tqdm
-from tokenizer import SpecialTokensMixin
+from tokenizer import BertTokenizer
 
 
 from datasets import (
@@ -111,7 +111,7 @@ class MultitaskBERT(nn.Module):
     def concatinate_two_sentence(self, input_ids_1, attention_mask_1,
                            input_ids_2, attention_mask_2):
         
-        sep_token_id = torch.tensor([SpecialTokensMixin.sep_token_id()], dtype=torch.long, device=input_ids_1.device)
+        sep_token_id = torch.tensor([BertTokenizer._convert_token_to_id["[SEP]"]], dtype=torch.long, device=input_ids_1.device)
         batch_sep_token_id = sep_token_id.repeat(input_ids_1.shape[0], 1)
 
         
