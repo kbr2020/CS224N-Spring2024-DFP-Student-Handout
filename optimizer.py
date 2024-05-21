@@ -58,11 +58,10 @@ class AdamW(Optimizer):
                 # 3. Update parameters (p.data).
                 # 4. Apply weight decay after the main gradient-based updates.
                 # Refer to the default project handout for more details.
-                device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
                 if len(state) == 0:
                     state["t"] = 0
-                    state["f_mom"] = torch.zeros(p.data.shape).to(device)
-                    state["s_mom"] = torch.zeros(p.data.shape).to(device)
+                    state["f_mom"] = torch.zeros_like(p.data)
+                    state["s_mom"] = torch.zeros_like(p.data)
                 
                 beta1 = group["betas"][0]
                 beta2 = group["betas"][1]

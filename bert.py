@@ -4,6 +4,8 @@ import torch.nn.functional as F
 from base_bert import BertPreTrainedModel
 from utils import *
 
+import math
+
 
 class BertSelfAttention(nn.Module):
   def __init__(self, config):
@@ -51,7 +53,7 @@ class BertSelfAttention(nn.Module):
 
     ###
     bs,  num_attention_head, seq_len, attention_head_size = key.size()
-    S = torch.matmul(query,key.transpose(-2,-1))/ (attention_head_size**0.5)
+    S = torch.matmul(query,key.transpose(-2,-1))/ math.sqrt(attention_head_size)
     S = S + attention_mask
     S = F.softmax(S, dim = -1)
 
