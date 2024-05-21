@@ -450,9 +450,6 @@ def get_args():
     parser.add_argument("--hidden_dropout_prob", type=float, default=0.3)
     parser.add_argument("--lr", type=float, help="learning rate", default=1e-5)
 
-    parser.add_argument("--test_only", action='store_true', help="If only need to test")
-    parser.add_argument("--further_training", type=bool, help="If only need to test", default= False)
-
     args = parser.parse_args()
     return args
 
@@ -460,7 +457,6 @@ def get_args():
 if __name__ == "__main__":
     args = get_args()
     args.filepath = f'{args.fine_tune_mode}-{args.epochs}-{args.lr}-multitask.pt' # Save path.
-    seed_everything(args.seed)
-    if  not args.test_only:
-        train_multitask(args)
+    seed_everything(args.seed)  # Fix the seed for reproducibility.
+    train_multitask(args)
     test_multitask(args)
