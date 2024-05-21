@@ -254,7 +254,7 @@ def train_multitask(args):
             optimizer.zero_grad()
             logit = model.predict_similarity(b_ids1, b_mask1,
                            b_ids2, b_mask2)
-            train_loss_sts = loss = F.mse_loss(logit.view(-1),b_labels.float(), reduction='sum') / args.batch_size
+            loss = F.mse_loss(logit.view(-1),b_labels.float(), reduction='sum') / args.batch_size
 
             loss.backward()
             optimizer.step()
@@ -455,8 +455,9 @@ def get_args():
 
 
 if __name__ == "__main__":
+    print("ha")
     args = get_args()
     args.filepath = f'{args.fine_tune_mode}-{args.epochs}-{args.lr}-multitask.pt' # Save path.
     seed_everything(args.seed)  # Fix the seed for reproducibility.
-    train_multitask(args)
+    #train_multitask(args)
     test_multitask(args)
