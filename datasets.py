@@ -100,14 +100,15 @@ class SentenceClassificationTestDataset(Dataset):
 
 
 class SentencePairDataset(Dataset):
-    def __init__(self, dataset, args, isRegression=False):
+    def __init__(self, dataset, args, isRegression=False, reduced = 1):
         self.dataset = dataset
         self.p = args
         self.isRegression = isRegression 
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+        self.reduced = reduced
 
     def __len__(self):
-        return int(len(self.dataset)/10)
+        return int(len(self.dataset)/self.reduced)
 
     def __getitem__(self, idx):
         return self.dataset[idx]

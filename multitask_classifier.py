@@ -85,6 +85,12 @@ class MultitaskBERT(nn.Module):
         self.linear_sts = torch.nn.Linear(config.hidden_size, 1)
         self.dropout_sts = torch.nn.Dropout(config.hidden_dropout_prob)
 
+        #Using CoSine similarity
+
+        
+
+        
+
 
 
 
@@ -144,6 +150,7 @@ class MultitaskBERT(nn.Module):
         '''Given a batch of pairs of sentences, outputs a single logit corresponding to how similar they are.
         Note that your output should be unnormalized (a logit).
         '''
+        
         input_ids, attention_mask = self.concatinate_two_sentence(input_ids_1, attention_mask_1,
                            input_ids_2, attention_mask_2)
 
@@ -191,8 +198,8 @@ def train_multitask(args):
     sst_dev_dataloader = DataLoader(sst_dev_data, shuffle=False, batch_size=args.batch_size,
                                     collate_fn=sst_dev_data.collate_fn)
 
-    para_train_data = SentencePairDataset(para_train_data, args)
-    para_dev_data = SentencePairDataset(para_dev_data, args)
+    para_train_data = SentencePairDataset(para_train_data, args,reduced=  20)
+    para_dev_data = SentencePairDataset(para_dev_data, args, reduced)
 
     para_train_dataloader = DataLoader(para_train_data, shuffle=True, batch_size=args.batch_size,
                                           collate_fn=para_train_data.collate_fn)
@@ -452,6 +459,8 @@ def get_args():
 
     parser.add_argument("--test_only", action='store_true', help="If only need to test")
     parser.add_argument("--further_training", type=bool, help="If only need to test", default= False)
+
+    parser.add_argument("--cosine_sim", type=bool, help="Use consine similarity or not", default= False)
 
     args = parser.parse_args()
     return args
