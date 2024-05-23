@@ -485,7 +485,7 @@ def get_args():
     parser.add_argument("--test_only", action='store_true', help="If only need to test")
     parser.add_argument("--further_training", type=bool, help="If only need to test", default= False)
 
-    parser.add_argument("--cosine_sim", action='store_true' help="Use consine similarity or not")
+    parser.add_argument("--cosine_sim", action='store_true', help="Use consine similarity or not")
 
     args = parser.parse_args()
     return args
