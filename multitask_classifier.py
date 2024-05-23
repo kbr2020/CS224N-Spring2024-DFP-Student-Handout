@@ -87,7 +87,7 @@ class MultitaskBERT(nn.Module):
         self.dropout_sts = torch.nn.Dropout(config.hidden_dropout_prob)
 
         if (self.cosinus_m):
-            self.Emb_sts = torch.nn.Linear(config.hidden_size, 64)
+            self.Emb_sts = torch.nn.Linear(config.hidden_size, config.hidden_size)
             self.Emb_dropout_sts = torch.nn.Dropout(config.hidden_dropout_prob)
             self.act_f = F.gelu
 
@@ -117,7 +117,7 @@ class MultitaskBERT(nn.Module):
         # (e.g., by adding other layers).
         output = self.bert(input_ids,attention_mask)["pooler_output"]
         output = self.Emb_dropout_sts(output)
-        output = self.act_f(self.Emb_sts(output))
+        output = self.Emb_sts(output)
         return output
 
 
@@ -178,7 +178,7 @@ class MultitaskBERT(nn.Module):
         else:
             output_1 = self.forward_cos_emb(input_ids_1, attention_mask_1)
             output_2 = self.forward_cos_emb(input_ids_2, attention_mask_2)
-            logit = torch.abs(F.cosine_similarity(output_1,output_2))*5
+            logit = F.cosine_similarity(output_1,output_2)*5
         return logit
 
 
