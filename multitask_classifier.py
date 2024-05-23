@@ -326,13 +326,16 @@ def train_multitask(args):
                          sts_dev_dataloader,
                          model, device)
         
-        dev_acc = (sentiment_accuracy + paraphrase_accuracy + sts_corr)/3
+        dev_acc = (sentiment_accuracy + paraphrase_accuracy + 0.5 + 0.5*sts_corr)/3
 
         if dev_acc > best_dev_acc:
             best_dev_acc = dev_acc
             save_model(model, optimizer, args, config, args.filepath)
 
-        print(f"Epoch {epoch}: train loss :: {train_loss_par :.3f}, train acc :: {train_loss_sts :.3f}, dev acc :: {dev_acc :.3f}")
+        print(f"Epoch {epoch}: train loss SST:: {train_loss_sst :.3f}, train acc :: {train_loss_sts :.3f}, dev acc :: {sentiment_accuracy :.3f}")
+        print(f"Epoch {epoch}: train loss STS:: {train_loss_sts :.3f}, train acc :: {train_loss_sts :.3f}, dev acc :: {sts_corr :.3f}")
+        print(f"Epoch {epoch}: train loss PAR:: {train_loss_par :.3f}, train acc :: {train_loss_sts :.3f}, dev acc :: {paraphrase_accuracy :.3f}")
+        print(f"Epoch {epoch}: Accuracy :: {dev_acc:3f} ")
 
 
 def test_multitask(args):
