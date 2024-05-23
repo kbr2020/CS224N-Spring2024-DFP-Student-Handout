@@ -178,7 +178,7 @@ class MultitaskBERT(nn.Module):
         else:
             output_1 = self.forward_cos_emb(input_ids_1, attention_mask_1)
             output_2 = self.forward_cos_emb(input_ids_2, attention_mask_2)
-            logit = torch.abs(F.cos_sim(output_1,output_2))*5
+            logit = F.abs(F.CosineSimilarity(output_1,output_2))*5
         return logit
 
 
