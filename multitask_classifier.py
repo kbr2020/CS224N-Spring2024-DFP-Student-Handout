@@ -63,10 +63,11 @@ class MultitaskBERT(nn.Module):
     - Paraphrase detection (predict_paraphrase)
     - Semantic Textual Similarity (predict_similarity)
     '''
-    def __init__(self, config):
+    def __init__(self, config,cosinus_m = False):
         super(MultitaskBERT, self).__init__()
         self.bert = BertModel.from_pretrained('bert-base-uncased')
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+        self.cosinus_m = cosinus_m
         # last-linear-layer mode does not require updating BERT paramters.
         assert config.fine_tune_mode in ["last-linear-layer", "full-model"]
         for param in self.bert.parameters():
@@ -85,7 +86,12 @@ class MultitaskBERT(nn.Module):
         self.linear_sts = torch.nn.Linear(config.hidden_size, 1)
         self.dropout_sts = torch.nn.Dropout(config.hidden_dropout_prob)
 
-        #Using CoSine similarity
+        if (self.cosinus_m):
+            self.Emb_sts = torch.nn.Linear(config.hidden_size, 64)
+            self.Emb_dropout_sts = torch.nn.Dropout(config.hidden_dropout_prob)
+            self.act_f = F.gelu
+
+        
 
         
 
@@ -101,6 +107,17 @@ class MultitaskBERT(nn.Module):
         # When thinking of improvements, you can later try modifying this
         # (e.g., by adding other layers).
         output = self.bert(input_ids,attention_mask)["pooler_output"]
+        return output
+    
+    def forward_cos_emb(self, input_ids, attention_mask):
+        'Takes a batch of sentences and produces embeddings for them.'
+        # The final BERT embedding is the hidden state of [CLS] token (the first token)
+        # Here, you can start by just returning the embeddings straight from BERT.
+        # When thinking of improvements, you can later try modifying this
+        # (e.g., by adding other layers).
+        output = self.bert(input_ids,attention_mask)["pooler_output"]
+        output = self.Emb_dropout_sts(output)
+        output = self.act_f(self.Emb_sts(output))
         return output
 
 
@@ -150,13 +167,18 @@ class MultitaskBERT(nn.Module):
         '''Given a batch of pairs of sentences, outputs a single logit corresponding to how similar they are.
         Note that your output should be unnormalized (a logit).
         '''
-        
-        input_ids, attention_mask = self.concatinate_two_sentence(input_ids_1, attention_mask_1,
+        logit = 0
+        if (self.cosinus_m == False):
+            input_ids, attention_mask = self.concatinate_two_sentence(input_ids_1, attention_mask_1,
                            input_ids_2, attention_mask_2)
 
-        first_tk = self.forward(input_ids,attention_mask)
+            first_tk = self.forward(input_ids,attention_mask)
 
-        logit = self.linear_sts(self.dropout_sts(first_tk))
+            logit = self.linear_sts(self.dropout_sts(first_tk))
+        else:
+            output_1 = self.forward_cos_emb(input_ids_1, attention_mask_1)
+            output_2 = self.forward_cos_emb(input_ids_2, attention_mask_2)
+            logit = torch.abs(F.cos_sim(output_1,output_2))*5
         return logit
 
 
@@ -198,7 +220,7 @@ def train_multitask(args):
     sst_dev_dataloader = DataLoader(sst_dev_data, shuffle=False, batch_size=args.batch_size,
                                     collate_fn=sst_dev_data.collate_fn)
 
-    para_train_data = SentencePairDataset(para_train_data, args,reduced=  20)
+    para_train_data = SentencePairDataset(para_train_data, args,reduced =  20)
     para_dev_data = SentencePairDataset(para_dev_data, args)
 
     para_train_dataloader = DataLoader(para_train_data, shuffle=True, batch_size=args.batch_size,
@@ -223,7 +245,7 @@ def train_multitask(args):
 
     config = SimpleNamespace(**config)
 
-    model = MultitaskBERT(config)
+    model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
     model = model.to(device)
 
     lr = args.lr
@@ -345,7 +367,7 @@ def test_multitask(args):
         saved = torch.load(args.filepath)
         config = saved['model_config']
 
-        model = MultitaskBERT(config)
+        model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
         model.load_state_dict(saved['model'])
         model = model.to(device)
         print(f"Loaded model to test from {args.filepath}")
@@ -463,7 +485,7 @@ def get_args():
     parser.add_argument("--test_only", action='store_true', help="If only need to test")
     parser.add_argument("--further_training", type=bool, help="If only need to test", default= False)
 
-    parser.add_argument("--cosine_sim", type=bool, help="Use consine similarity or not", default= False)
+    parser.add_argument("--cosine_sim", action='store_true' help="Use consine similarity or not")
 
     args = parser.parse_args()
     return args
