@@ -107,7 +107,7 @@ class SentencePairDataset(Dataset):
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
     def __len__(self):
-        return len(self.dataset)/10
+        return int(len(self.dataset)/10)
 
     def __getitem__(self, idx):
         return self.dataset[idx]
