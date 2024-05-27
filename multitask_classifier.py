@@ -243,8 +243,8 @@ def train_multitask(args):
     sst_dev_dataloader = DataLoader(sst_dev_data, shuffle=False, batch_size=args.batch_size,
                                     collate_fn=sst_dev_data.collate_fn)
 
-    para_train_data = SentencePairDataset(para_train_data, args,reduced =  20)
-    para_dev_data = SentencePairDataset(para_dev_data, args, reduced =  20)
+    para_train_data = SentencePairDataset(para_train_data, args,reduced =  args.reduced)
+    para_dev_data = SentencePairDataset(para_dev_data, args, reduced =  args.reduced)
 
     para_train_dataloader = DataLoader(para_train_data, shuffle=True, batch_size=args.batch_size,
                                           collate_fn=para_train_data.collate_fn)
@@ -529,6 +529,7 @@ def get_args():
     parser.add_argument("--cosine_sim", action='store_true', help="Use consine similarity or not")
 
     parser.add_argument("--SMART", action='store_true')
+    parser.add_argument("--reduced", type=int action='store_true', default = 20)
 
     args = parser.parse_args()
     return args
@@ -536,7 +537,7 @@ def get_args():
 
 if __name__ == "__main__":
     args = get_args()
-    args.filepath = f'{args.fine_tune_mode}-{args.epochs}-{args.lr}-multitask.pt' # Save path.
+    args.filepath = f'{args.fine_tune_mode}-{args.epochs}-{args.lr}-{args.reduced}-multitask.pt' # Save path.
     seed_everything(args.seed)
     if  not args.test_only:
         train_multitask(args)
