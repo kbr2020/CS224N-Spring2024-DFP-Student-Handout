@@ -312,7 +312,7 @@ def train_multitask(args):
             if args.SMART:
                 input_ids, attention_mask = model.concatinate_two_sentence(b_ids1, b_mask1,b_ids2, b_mask2)
                 embeds = model.forward(input_ids,attention_mask)
-                smart_regularization(loss_v, 0.1 ,embeds, logit, model.last_lay_sim)
+                smart_regularization(loss_v, args.weight_regularisation ,embeds, logit, model.last_lay_sim)
 
             loss.backward()
             optimizer.step()
@@ -341,7 +341,7 @@ def train_multitask(args):
             if args.SMART:
                 input_ids, attention_mask = model.concatinate_two_sentence(b_ids1, b_mask1,b_ids2, b_mask2)
                 embeds = model.forward(input_ids,attention_mask)
-                smart_regularization(loss_v, 0.1 ,embeds, logit, model.last_lay_par)
+                smart_regularization(loss_v, args.weight_regularisation ,embeds, logit, model.last_lay_par)
 
 
             loss.backward()
@@ -365,7 +365,7 @@ def train_multitask(args):
 
             if args.SMART:
                 embeds = model.forward(b_ids,b_mask)
-                smart_regularization(loss_v, 0.1 ,embeds, logits, model.last_lay_sent)
+                smart_regularization(loss_v, args.weight_regularisation ,embeds, logits, model.last_lay_sent)
 
             loss.backward()
             optimizer.step()
@@ -530,6 +530,7 @@ def get_args():
 
     parser.add_argument("--SMART", action='store_true')
     parser.add_argument("--reduced", type=int, default = 20)
+    parser.add_argument("--weight_regularisation", type=int, default = 1e-2)
 
     args = parser.parse_args()
     return args
