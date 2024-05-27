@@ -49,7 +49,6 @@ class SMART_loss(nn.Module):
 
         for i in range(self.num_steps):
             embedd_noise = embedd + noise
-            print(embedd_noise.shape)
             state_no = self.eval_func(embedd_noise)
 
             loss = self.loss_func(state_no, state.detach())

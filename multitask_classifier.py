@@ -168,7 +168,6 @@ class MultitaskBERT(nn.Module):
         return logit
     
     def last_lay_par(self,embedd):
-        print(embedd.shape)
         logit = self.linear_par(self.dropout_par(embedd))
         return logit
     
@@ -306,8 +305,7 @@ def train_multitask(args):
             if args.SMART:
                 input_ids, attention_mask = model.concatinate_two_sentence(b_ids1, b_mask1,b_ids2, b_mask2)
                 embeds = model.forward(input_ids,attention_mask)
-                print(embeds.shape)
-                smart_regularization(loss_v, 0.1 , logit, embeds, model.last_lay_sim)
+                smart_regularization(loss_v, 0.1 ,embeds, logit, model.last_lay_sim)
 
             loss.backward()
             optimizer.step()
@@ -336,7 +334,7 @@ def train_multitask(args):
             if args.SMART:
                 input_ids, attention_mask = model.concatinate_two_sentence(b_ids1, b_mask1,b_ids2, b_mask2)
                 embeds = model.forward(input_ids,attention_mask)
-                smart_regularization(loss_v, 0.1 , logit, embeds, model.last_lay_par)
+                smart_regularization(loss_v, 0.1 ,embeds, logit, model.last_lay_par)
 
 
             loss.backward()
