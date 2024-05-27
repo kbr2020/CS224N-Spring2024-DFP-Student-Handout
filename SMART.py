@@ -33,7 +33,7 @@ def sym_kl_loss(input, target, reduction='sum', alpha=1.0):
 
 
 class SMART_loss(nn.Module):
-    def __init__(self, eval_func, loss_func,    num_steps: int = 1, step_size: float = 1e-3, epsilon: float = 1e-6,noise_var: float = 1e-5):
+    def __init__(self, eval_func, loss_func, norm_fn =  inf_norm,   num_steps: int = 1, step_size: float = 1e-3, epsilon: float = 1e-6,noise_var: float = 1e-5):
     
         super().__init__()
         self.num_steps = num_steps 
