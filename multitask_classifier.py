@@ -166,6 +166,14 @@ class MultitaskBERT(nn.Module):
 
         logit = self.linear_par(self.dropout_par(first_tk))
         return logit
+    
+    def last_lay_par(self,embedd):
+        logit = self.linear_par(self.dropout_par(embedd))
+        return logit
+    
+    def last_lay_sim(self,embedd):
+        logit = self.linear_sts(self.dropout_par(embedd))
+        return logit
 
 
 
@@ -295,8 +303,9 @@ def train_multitask(args):
             loss_v = loss.item()
 
             if args.SMART:
-                embeds = model.concatinate_two_sentence(b_ids1, b_mask1,b_ids2, b_mask2)
-                smart_regularization(loss_v, 0.01 , logit, embeds, model.predict_similarity)
+                input_ids, attention_mask = model.concatinate_two_sentence(b_ids1, b_mask1,b_ids2, b_mask2)
+                embeds = model.forward(input_ids,attention_mask)
+                smart_regularization(loss_v, 0.1 , logit, embeds, model.last_lay_sim)
 
             loss.backward()
             optimizer.step()
@@ -323,9 +332,9 @@ def train_multitask(args):
             loss_v = loss.item()
 
             if args.SMART:
-                embeds = model.concatinate_two_sentence(b_ids1, b_mask1,
-                           b_ids2, b_mask2)
-                smart_regularization(loss_v, 0.01 , logit, embeds, model.predict_paraphrase)
+                input_ids, attention_mask = model.concatinate_two_sentence(b_ids1, b_mask1,b_ids2, b_mask2)
+                embeds = model.forward(input_ids,attention_mask)
+                smart_regularization(loss_v, 0.1 , logit, embeds, model.last_lay_par)
 
 
             loss.backward()
@@ -349,7 +358,7 @@ def train_multitask(args):
 
             if args.SMART:
                 embeds = model.forward(b_ids,b_mask)
-                smart_regularization(loss_v, 0.01 , logits, embeds, model.predict_sentiment)
+                smart_regularization(loss_v, 0.1 , logits, embeds, model.predict_sentiment)
 
             loss.backward()
             optimizer.step()
