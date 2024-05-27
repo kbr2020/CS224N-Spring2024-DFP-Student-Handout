@@ -44,7 +44,7 @@ class SMART_loss(nn.Module):
         self.loss_func = loss_func
 
 
-    def fowrward(self, embedd , state):
+    def forward(self, embedd , state):
         noise = nn.randn_like(embedd, require_grad = True)*self.noise_var
 
         for i in range(self.num_steps):
