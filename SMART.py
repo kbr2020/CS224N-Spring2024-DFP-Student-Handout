@@ -42,6 +42,7 @@ class SMART_loss(nn.Module):
         self.noise_var = noise_var
         self.eval_func = eval_func
         self.loss_func = loss_func
+        self.norm_fn = norm_fn
 
 
     def forward(self, embedd , state):
