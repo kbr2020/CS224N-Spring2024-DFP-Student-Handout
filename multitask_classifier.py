@@ -43,8 +43,10 @@ from evaluation import model_eval_sst, model_eval_multitask, model_eval_test_mul
 TQDM_DISABLE=False
 
 def smart_regularization(loss_value, smart_loss_weight, embeddings, logits, last_layers):
+
     smart_loss_fn = SMART_loss(eval_func = last_layers, loss_func = kl_loss,num_steps = 1, step_size = 1e-5,epsilon = 1e-6, noise_var = 1e-6 )             
     loss_value += smart_loss_weight * smart_loss_fn(embeddings, logits)    
+    
     return loss_value
 
 
