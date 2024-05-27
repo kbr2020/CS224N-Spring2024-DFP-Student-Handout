@@ -25,6 +25,9 @@ from optimizer import AdamW
 from tqdm import tqdm
 from tokenizer import BertTokenizer
 
+from SMART import kl_loss, SMART_loss
+
+
 
 from datasets import (
     SentenceClassificationDataset,
@@ -38,6 +41,11 @@ from evaluation import model_eval_sst, model_eval_multitask, model_eval_test_mul
 
 
 TQDM_DISABLE=False
+
+def smart_regularization(loss_value, smart_loss_weight, embeddings, logits, last_layers):
+    smart_loss_fn = SMART_loss(eval_fn = last_layers, loss_fn = kl_loss,num_steps = 1, step_size = 1e-5,epsilon = 1e-6, noise_var = 1e-6 )             
+    loss_value += smart_loss_weight * smart_loss_fn(embeddings, logits)    
+    return loss_value
 
 
 # Fix the random seed.
@@ -284,11 +292,16 @@ def train_multitask(args):
             logit = model.predict_similarity(b_ids1, b_mask1,
                            b_ids2, b_mask2)
             loss = F.mse_loss(logit.view(-1),b_labels.float(), reduction='sum') / args.batch_size
+            loss_v = loss.item()
+
+            if args.SMART:
+                embeds = model.concatinate_two_sentence(b_ids1, b_mask1,b_ids2, b_mask2)
+                smart_regularization(loss_v, 0.01 , logit, embeds, model.predict_similarity)
 
             loss.backward()
             optimizer.step()
 
-            train_loss_sts += loss.item()
+            train_loss_sts += loss_v
             num_batches_sts += 1
 
         for batch  in tqdm(para_train_dataloader , desc=f'train-{epoch}', disable=TQDM_DISABLE):
@@ -307,11 +320,18 @@ def train_multitask(args):
             logit = model.predict_paraphrase(b_ids1, b_mask1,
                            b_ids2, b_mask2)
             loss = F.binary_cross_entropy_with_logits(logit.view(-1),b_labels.float(), reduction='sum') / args.batch_size
+            loss_v = loss.item()
+
+            if args.SMART:
+                embeds = model.concatinate_two_sentence(b_ids1, b_mask1,
+                           b_ids2, b_mask2)
+                smart_regularization(loss_v, 0.01 , logit, embeds, model.predict_paraphrase)
+
 
             loss.backward()
             optimizer.step()
 
-            train_loss_par += loss.item()
+            train_loss_par += loss_v
             num_batches_par += 1
 
         for batch  in tqdm(sst_train_dataloader , desc=f'train-{epoch}', disable=TQDM_DISABLE):
@@ -325,11 +345,16 @@ def train_multitask(args):
             optimizer.zero_grad()
             logits = model.predict_sentiment(b_ids, b_mask)
             loss = F.cross_entropy(logits, b_labels.view(-1), reduction='sum') / args.batch_size
+            loss_v = loss.item()
+
+            if args.SMART:
+                embeds = model.forward(b_ids,b_mask)
+                smart_regularization(loss_v, 0.01 , logits, embeds, model.predict_sentiment)
 
             loss.backward()
             optimizer.step()
 
-            train_loss_sst += loss.item()
+            train_loss_sst += loss_v
             num_batches_sst += 1
 
         
@@ -483,9 +508,11 @@ def get_args():
     parser.add_argument("--lr", type=float, help="learning rate", default=1e-5)
 
     parser.add_argument("--test_only", action='store_true', help="If only need to test")
-    parser.add_argument("--further_training", type=bool, help="If only need to test", default= False)
+    parser.add_argument("--further_training", action='store_true')
 
     parser.add_argument("--cosine_sim", action='store_true', help="Use consine similarity or not")
+
+    parser.add_argument("--SMART", action='store_true')
 
     args = parser.parse_args()
     return args
