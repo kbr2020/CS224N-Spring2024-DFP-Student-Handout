@@ -53,7 +53,9 @@ class SMART_loss(nn.Module):
 
             loss = self.loss_func(state_no, state.detach())
 
-            noise_gr, _ = torch.autograd.grad(loss, noise)
+            noise_gr= torch.autograd.grad(loss, noise)
+
+            print(noise_gr)
 
             step = noise + self.step_size * noise_gr
 
