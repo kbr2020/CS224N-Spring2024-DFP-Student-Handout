@@ -59,9 +59,9 @@ class SMART_loss(nn.Module):
             noise_gr = noise_gr[0]
 
             step = noise + self.step_size * noise_gr
-
+            print(step.shape)
             step_norm = self.norm_fn(step)
-
+            print(step_norm.shape)
             noise = step / (step_norm + self.epsilon)
 
             noise = noise.detach().requires_grad_() 
