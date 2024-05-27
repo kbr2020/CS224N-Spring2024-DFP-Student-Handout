@@ -365,7 +365,7 @@ def train_multitask(args):
 
             if args.SMART:
                 embeds = model.forward(b_ids,b_mask)
-                smart_regularization(loss_v, 0.1 , logits, embeds, model.last_lay_sent)
+                smart_regularization(loss_v, 0.1 ,embeds, logits, model.last_lay_sent)
 
             loss.backward()
             optimizer.step()

@@ -10,7 +10,7 @@ from itertools import count
 
 
 def inf_norm(x):
-    return torch.norm(x, p = float('inf'),dim = -1)
+    return torch.norm(x, p = float('inf'),dim = -1,keepdim = True)
 
 def kl_loss(input, target, reduction='batchmean'):
     return F.kl_div(
@@ -63,7 +63,7 @@ class SMART_loss(nn.Module):
 
             step = noise + self.step_size * noise_gr
             step_norm = self.norm_fn(step)
-            noise = step / (step_norm.view(-1,1) + self.epsilon)
+            noise = step / (step_norm + self.epsilon)
 
             noise = noise.detach().requires_grad_() 
         
