@@ -4,7 +4,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-
+from itertools import count 
 
 
 
@@ -48,9 +48,12 @@ class SMART_loss(nn.Module):
     def forward(self, embedd , state):
         noise = torch.randn_like(embedd, requires_grad=True)*self.noise_var
 
-        for i in range(self.num_steps):
+        for i in count():
             embedd_noise = embedd + noise
             state_no = self.eval_func(embedd_noise)
+
+            if i == self.num_steps: 
+                return self.loss_func(state_no, state) 
 
             loss = self.loss_func(state_no, state.detach())
 
