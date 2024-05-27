@@ -529,7 +529,7 @@ def get_args():
     parser.add_argument("--cosine_sim", action='store_true', help="Use consine similarity or not")
 
     parser.add_argument("--SMART", action='store_true')
-    parser.add_argument("--reduced", type=int action='store_true', default = 20)
+    parser.add_argument("--reduced", type=int, default = 20)
 
     args = parser.parse_args()
     return args
