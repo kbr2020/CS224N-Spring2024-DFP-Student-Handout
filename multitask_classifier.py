@@ -168,6 +168,7 @@ class MultitaskBERT(nn.Module):
         return logit
     
     def last_lay_par(self,embedd):
+        print(embedd.shape)
         logit = self.linear_par(self.dropout_par(embedd))
         return logit
     
