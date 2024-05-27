@@ -46,7 +46,7 @@ def smart_regularization(loss_value, smart_loss_weight, embeddings, logits, last
 
     smart_loss_fn = SMART_loss(eval_func = last_layers, loss_func = kl_loss,num_steps = 1, step_size = 1e-5,epsilon = 1e-6, noise_var = 1e-6 )             
     loss_value += smart_loss_weight * smart_loss_fn(embeddings, logits)    
-    
+
     return loss_value
 
 
@@ -176,6 +176,11 @@ class MultitaskBERT(nn.Module):
     def last_lay_sim(self,embedd):
         logit = self.linear_sts(self.dropout_par(embedd))
         return logit
+    
+    def last_lay_sent(self,embedd):
+        logit = self.linear_sst(self.dropout_par(embedd))
+        return logit
+    
 
 
 
@@ -360,7 +365,7 @@ def train_multitask(args):
 
             if args.SMART:
                 embeds = model.forward(b_ids,b_mask)
-                smart_regularization(loss_v, 0.1 , logits, embeds, model.predict_sentiment)
+                smart_regularization(loss_v, 0.1 , logits, embeds, model.last_lay_sent)
 
             loss.backward()
             optimizer.step()
