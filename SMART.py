@@ -40,7 +40,7 @@ class SMART_loss(nn.Module):
         self.step_size = step_size
         self.epsilon = epsilon 
         self.noise_var = noise_var
-        self.eval_dunc = eval_func
+        self.eval_func = eval_func
         self.loss_func = loss_func
 
 
@@ -49,7 +49,7 @@ class SMART_loss(nn.Module):
 
         for i in range(self.num_steps):
             embedd_noise = embedd + noise
-            state_no = self.feval_fn(embedd_noise)
+            state_no = self.eval_func(embedd_noise)
 
             loss = self.loss_func(state_no, state.detach())
 
