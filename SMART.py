@@ -3,8 +3,7 @@
 
 import torch
 from torch import nn
-from torch import Tensor
-import torch.nn.Functional as F
+import torch.nn.functional as F
 
 
 
