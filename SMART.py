@@ -13,7 +13,7 @@ def inf_norm(x):
     return torch.norm(x, p = float('inf'),dim = -1,keepdim = True)
 
 def norm_2(x):
-    return torch.norm(x, 2,dim = -1,keepdim = True)
+    return torch.norm(x, 1,dim = -1,keepdim = True)
 
 def kl_loss(input, target, reduction='batchmean'):
     return F.kl_div(
