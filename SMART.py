@@ -12,6 +12,9 @@ from itertools import count
 def inf_norm(x):
     return torch.norm(x, p = float('inf'),dim = -1,keepdim = True)
 
+def norm_2(x):
+    return torch.norm(x, 2,dim = -1,keepdim = True)
+
 def kl_loss(input, target, reduction='batchmean'):
     return F.kl_div(
         F.log_softmax(input, dim=-1),
@@ -33,7 +36,7 @@ def sym_kl_loss(input, target, reduction='sum', alpha=1.0):
 
 
 class SMART_loss(nn.Module):
-    def __init__(self, eval_func, loss_func, norm_fn =  inf_norm,   num_steps: int = 1, step_size: float = 1e-3, epsilon: float = 1e-6,noise_var: float = 1e-5):
+    def __init__(self, eval_func, loss_func, norm_fn =  norm_2,   num_steps: int = 1, step_size: float = 1e-3, epsilon: float = 1e-6,noise_var: float = 1e-5):
     
         super().__init__()
         self.num_steps = num_steps 
