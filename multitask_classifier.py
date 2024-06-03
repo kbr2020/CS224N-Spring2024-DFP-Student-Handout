@@ -538,7 +538,7 @@ def get_args():
 
 if __name__ == "__main__":
     args = get_args()
-    args.filepath = f'{args.fine_tune_mode}-{args.epochs}-{args.lr}-{args.reduced}-multitask.pt' # Save path.
+    args.filepath = f'{args.fine_tune_mode}-{args.epochs}-{args.lr}-{args.reduced}-SMART-{args.smart}_COS:{args.cosine_sim}_multitask.pt' # Save path.
     seed_everything(args.seed)
     if  not args.test_only:
         train_multitask(args)
