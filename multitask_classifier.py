@@ -101,7 +101,7 @@ class MultitaskBERT(nn.Module):
             self.Emb_sts2 = torch.nn.Linear(config.hidden_size, config.hidden_size)
             self.Emb_dropout_sts = torch.nn.Dropout(config.hidden_dropout_prob)
             self.Emb_dropout_sts2 = torch.nn.Dropout(config.hidden_dropout_prob)
-            self.act_f = F.gelu
+            self.act_f = F.tanh
 
         
 
