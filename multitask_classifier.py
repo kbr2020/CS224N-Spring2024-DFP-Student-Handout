@@ -265,6 +265,7 @@ def train_multitask(args):
                                         collate_fn=sts_dev_data.collate_fn)
 
     # Init model.
+    
     config = {'hidden_dropout_prob': args.hidden_dropout_prob,
               'num_labels': num_labels,
               'hidden_size': 768,
@@ -275,6 +276,18 @@ def train_multitask(args):
 
     model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
     model = model.to(device)
+
+    if args.further_training:
+
+        device = torch.device('cuda') if args.use_gpu else torch.device('cpu')
+        saved = torch.load(args.further_training_file)
+        config = saved['model_config']
+
+        model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
+        model.load_state_dict(saved['model'])
+        model = model.to(device)
+
+
 
     lr = args.lr
     optimizer = AdamW(model.parameters(), lr=lr)
@@ -530,6 +543,7 @@ def get_args():
 
     parser.add_argument("--test_only", action='store_true', help="If only need to test")
     parser.add_argument("--further_training", action='store_true')
+    parser.add_argument("--further_training_file", type=str, default  = "" )
 
     parser.add_argument("--cosine_sim", action='store_true', help="Use consine similarity or not")
 
