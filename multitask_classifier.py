@@ -279,6 +279,8 @@ def train_multitask(args):
         saved = torch.load(args.further_training_file)
         print("test2")
 
+        config = SimpleNamespace(**config)
+
         model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
         model.load_state_dict(saved['model'])
         model = model.to(device)
