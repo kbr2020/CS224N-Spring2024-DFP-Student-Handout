@@ -267,19 +267,17 @@ def train_multitask(args):
     # Init model.
     
     model = None
-    config = None 
+    config = {'hidden_dropout_prob': args.hidden_dropout_prob,
+              'num_labels': num_labels,
+              'hidden_size': 768,
+              'data_dir': '.',
+              'fine_tune_mode': args.fine_tune_mode}
 
     if args.further_training:
         print("test")
         device = torch.device('cuda') if args.use_gpu else torch.device('cpu')
         saved = torch.load(args.further_training_file)
         print("test2")
-
-        config = {'hidden_dropout_prob': args.hidden_dropout_prob,
-              'num_labels': num_labels,
-              'hidden_size': 768,
-              'data_dir': '.',
-              'fine_tune_mode': args.fine_tune_mode}
 
         model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
         model.load_state_dict(saved['model'])
