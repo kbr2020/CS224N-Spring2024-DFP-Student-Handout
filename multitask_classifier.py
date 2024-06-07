@@ -266,25 +266,31 @@ def train_multitask(args):
 
     # Init model.
     
-    config = {'hidden_dropout_prob': args.hidden_dropout_prob,
+    model = None
+    config = None 
+
+    if args.further_training:
+        print("test")
+        device = torch.device('cuda') if args.use_gpu else torch.device('cpu')
+        saved = torch.load(args.further_training_file)
+        print("test2")
+        config = saved['model_config']
+
+        model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
+        model.load_state_dict(saved['model'])
+        model = model.to(device)
+    
+    else:
+
+        config = {'hidden_dropout_prob': args.hidden_dropout_prob,
               'num_labels': num_labels,
               'hidden_size': 768,
               'data_dir': '.',
               'fine_tune_mode': args.fine_tune_mode}
 
-    config = SimpleNamespace(**config)
-
-    model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
-    model = model.to(device)
-
-    if args.further_training:
-
-        device = torch.device('cuda') if args.use_gpu else torch.device('cpu')
-        saved = torch.load(args.further_training_file)
-        config = saved['model_config']
+        config = SimpleNamespace(**config)
 
         model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
-        model.load_state_dict(saved['model'])
         model = model.to(device)
 
 
@@ -293,9 +299,13 @@ def train_multitask(args):
     optimizer = AdamW(model.parameters(), lr=lr)
 
     best_dev_acc = 0
-    best_dev_accuracies = {'sst': 0, 'para': 0, 'sts': 0}
+    best_dev_accuracies_sst = 0
+    best_dev_accuracies_para = 0
+    best_dev_accuracies_sts = 0
 
     dataloaders = {'sst': sst_train_dataloader, 'para': para_train_dataloader, 'sts': sts_train_dataloader}
+
+    # best_model = model.copy()
 
     # Run for the specified number of epochs.
     for epoch in range(args.epochs):
@@ -409,9 +419,17 @@ def train_multitask(args):
         
         dev_acc = (sentiment_accuracy + paraphrase_accuracy + 0.5 + 0.5*sts_corr)/3
 
-        if dev_acc > best_dev_acc:
+        if args.diff_heads:
             best_dev_acc = dev_acc
             save_model(model, optimizer, args, config, args.filepath)
+            if best_dev_accuracies_sst > sts_corr:
+                best_dev_accuracies_sst = sts_corr
+        else:
+            if dev_acc > best_dev_acc:
+                best_dev_acc = dev_acc
+                save_model(model, optimizer, args, config, args.filepath)
+
+         
 
         print(f"Epoch {epoch}: train loss SST:: {train_loss_sst :.3f}, train acc :: {train_loss_sts :.3f}, dev acc :: {sentiment_accuracy :.3f}")
         print(f"Epoch {epoch}: train loss STS:: {train_loss_sts :.3f}, train acc :: {train_loss_sts :.3f}, dev acc :: {sts_corr :.3f}")
@@ -550,6 +568,8 @@ def get_args():
     parser.add_argument("--SMART", action='store_true')
     parser.add_argument("--reduced", type=int, default = 20)
     parser.add_argument("--weight_regularisation", type=int, default = 1e-2)
+
+    parser.add_argument("--diff_heads", action='store_true')
 
     args = parser.parse_args()
     return args
