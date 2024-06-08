@@ -413,7 +413,7 @@ def train_multitask(args):
         if args.diff_heads:
             best_dev_acc = dev_acc
 
-            if best_dev_accuracies_sst < sts_corr:
+            if best_dev_accuracies_sst < sentiment_accuracy:
                 print("BEST accu_sst")
                 best_dev_accuracies_sst = sentiment_accuracy
                 best_model.linear_sst = model.linear_sst
