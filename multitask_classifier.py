@@ -311,7 +311,7 @@ def train_multitask(args):
 
     dataloaders = {'sst': sst_train_dataloader, 'para': para_train_dataloader, 'sts': sts_train_dataloader}
 
-    # best_model = model.copy()
+    best_model = model.copy()
 
     # Run for the specified number of epochs.
     for epoch in range(args.epochs):
@@ -428,8 +428,21 @@ def train_multitask(args):
         if args.diff_heads:
             best_dev_acc = dev_acc
             save_model(model, optimizer, args, config, args.filepath)
+
             if best_dev_accuracies_sst > sts_corr:
-                best_dev_accuracies_sst = sts_corr
+                print("BEST accu_sst")
+                best_dev_accuracies_sst = sentiment_accuracy
+                best_model.linear_sst = model.linear_sst
+
+            if best_dev_accuracies_para > paraphrase_accuracy:
+                print("BEST accu_para")
+                best_dev_accuracies_para = paraphrase_accuracy
+                best_model.linear_par = model.linear_par
+            
+            if best_dev_accuracies_sts > sts_corr:
+                print("BEST accu_sts")
+                best_dev_accuracies_sts = sts_corr
+                best_model.linear_sts = model.linear_sts
         else:
             if dev_acc > best_dev_acc:
                 best_dev_acc = dev_acc
