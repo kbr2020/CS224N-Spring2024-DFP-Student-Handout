@@ -210,7 +210,9 @@ class MultitaskBERT(nn.Module):
         else:
             output_1 = self.forward_cos_emb(input_ids_1, attention_mask_1)
             output_2 = self.forward_cos_emb(input_ids_2, attention_mask_2)
-            logit = (F.cosine_similarity(output_1,output_2)+1)/2
+            # logit = (F.cosine_similarity(output_1,output_2)+1)/2
+            Before_final = torch.cat((output_1,output_2,torch.abs(output_1 - output_2)),dim = 1)
+            logit = F.relu(self.fin_lin_sts(Before_final))
         return logit
 
 
