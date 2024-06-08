@@ -266,39 +266,25 @@ def train_multitask(args):
 
     # Init model.
     
-    model = None
     config = {'hidden_dropout_prob': args.hidden_dropout_prob,
               'num_labels': num_labels,
               'hidden_size': 768,
               'data_dir': '.',
               'fine_tune_mode': args.fine_tune_mode}
+    
+    config = SimpleNamespace(**config)
 
+    model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
+    best_model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
     if args.further_training:
-        print("test")
         device = torch.device('cuda') if args.use_gpu else torch.device('cpu')
         saved = torch.load(args.further_training_file)
-        print("test2")
-
-        config = SimpleNamespace(**config)
-
-        model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
         model.load_state_dict(saved['model'])
-        model = model.to(device)
-    
-    else:
+        best_model.load_state_dict(saved['model'])
 
-        config = {'hidden_dropout_prob': args.hidden_dropout_prob,
-              'num_labels': num_labels,
-              'hidden_size': 768,
-              'data_dir': '.',
-              'fine_tune_mode': args.fine_tune_mode}
-
-        config = SimpleNamespace(**config)
-
-        model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
-        model = model.to(device)
-
-
+        
+    best_model = best_model.to(device)
+    model = model.to(device)
 
 
     lr = args.lr
@@ -311,7 +297,6 @@ def train_multitask(args):
 
     dataloaders = {'sst': sst_train_dataloader, 'para': para_train_dataloader, 'sts': sts_train_dataloader}
 
-    best_model = model.copy()
 
     # Run for the specified number of epochs.
     for epoch in range(args.epochs):
@@ -443,6 +428,8 @@ def train_multitask(args):
                 print("BEST accu_sts")
                 best_dev_accuracies_sts = sts_corr
                 best_model.linear_sts = model.linear_sts
+            
+            save_model(best_model, optimizer, args, config, args.filepath)
         else:
             if dev_acc > best_dev_acc:
                 best_dev_acc = dev_acc
