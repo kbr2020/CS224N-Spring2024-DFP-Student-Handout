@@ -416,17 +416,17 @@ def train_multitask(args):
             if best_dev_accuracies_sst < sentiment_accuracy:
                 print("BEST accu_sst")
                 best_dev_accuracies_sst = sentiment_accuracy
-                best_model.linear_sst = model.linear_sst
+                best_model.linear_sst.load_state_dict(model.linear_sst.state_dict())
 
             if best_dev_accuracies_para < paraphrase_accuracy:
                 print("BEST accu_para")
                 best_dev_accuracies_para = paraphrase_accuracy
-                best_model.linear_par = model.linear_par
+                best_model.linear_par.load_state_dict(model.linear_par.state_dict())
             
             if best_dev_accuracies_sts < sts_corr:
                 print("BEST accu_sts")
                 best_dev_accuracies_sts = sts_corr
-                best_model.linear_sts = model.linear_sts
+                best_model.linear_sts.load_state_dict(model.linear_sts.state_dict())
             
             save_model(best_model, optimizer, args, config, args.filepath)
         else:
