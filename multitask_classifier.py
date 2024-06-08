@@ -100,8 +100,8 @@ class MultitaskBERT(nn.Module):
 
         if (self.cosinus_m):
             self.Emb_sts = torch.nn.Linear(config.hidden_size, config.hidden_size)
-            self.Emb_sts2 = torch.nn.Linear(config.hidden_size, config.hidden_size)
-            self.fin_lin_sts = torch.nn.Linear(3*config.hidden_size,1)
+            self.Emb_sts2 = torch.nn.Linear(config.hidden_size, 128)
+            self.fin_lin_sts = torch.nn.Linear(3*128,1)
             self.Emb_dropout_sts = torch.nn.Dropout(config.hidden_dropout_prob)
             self.Emb_dropout_sts2 = torch.nn.Dropout(config.hidden_dropout_prob)
             self.act_f = F.gelu
