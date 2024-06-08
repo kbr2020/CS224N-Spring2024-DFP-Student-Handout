@@ -96,6 +96,8 @@ class MultitaskBERT(nn.Module):
         self.linear_sts = torch.nn.Linear(config.hidden_size, 1)
         self.dropout_sts = torch.nn.Dropout(config.hidden_dropout_prob)
 
+        self.activ = F.relu
+
         if (self.cosinus_m):
             self.Emb_sts = torch.nn.Linear(config.hidden_size, config.hidden_size)
             self.Emb_sts2 = torch.nn.Linear(config.hidden_size, config.hidden_size)
@@ -203,6 +205,7 @@ class MultitaskBERT(nn.Module):
             first_tk = self.forward(input_ids,attention_mask)
 
             logit = self.linear_sts(self.dropout_sts(first_tk))
+            logit = self.act_f(logit)
         else:
             output_1 = self.forward_cos_emb(input_ids_1, attention_mask_1)
             output_2 = self.forward_cos_emb(input_ids_2, attention_mask_2)
