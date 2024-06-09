@@ -577,7 +577,7 @@ def get_args():
     parser.add_argument("--sts_dev", type=str, default="data/sts-dev.csv")
     parser.add_argument("--sts_test", type=str, default="data/sts-test-student.csv")
 
-    parser.add_argument("--fair_dev", type=str, default="data/fair-dev.csv")
+    parser.add_argument("--fair_dev", type=str, default="data/gender_fair_train.csv")
 
     parser.add_argument("--seed", type=int, default=11711)
     parser.add_argument("--epochs", type=int, default=10)
