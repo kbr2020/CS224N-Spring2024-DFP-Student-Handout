@@ -695,8 +695,8 @@ if __name__ == "__main__":
         if  not args.test_only:
             train_multitask(args)
         test_multitask(args)
-    calculate_fairness(args)
-    if train_fairness_End:
+    #calculate_fairness(args)
+    if args.train_fairness_End:
         train_fairness(args)
         calculate_fairness(args)
 
