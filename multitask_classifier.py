@@ -489,7 +489,7 @@ def train_fairness(args):
     for epoch in range(args.epochs):
         total_loss_fair = 0
         num_batches_fair = 0
-        for step, batch in enumerate(tqdm(fair_dataloader, desc=f'eval', disable=TQDM_DISABLE)):
+        for step, batch in enumerate(tqdm(fair_train_data_loader, desc=f'train', disable=TQDM_DISABLE)):
             (b_ids1, b_mask1,
              b_ids2, b_mask2,
              b_labels, b_sent_ids) = (batch['token_ids_1'], batch['attention_mask_1'],

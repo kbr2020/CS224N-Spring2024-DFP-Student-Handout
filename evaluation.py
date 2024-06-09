@@ -41,8 +41,8 @@ def model_eval_prob(fair_dataloader, model, device):
             #print(np.max(z_1,axis = 1))
             #print(np.max(z_2,axis = 1))
 
-            fair_prob_1.extend(z_1)
-            fair_prob_2.extend(z_2)
+            fair_prob_1.append(z_1)
+            fair_prob_2.append(z_2)
 
     
     return fair_prob_1, fair_prob_2
