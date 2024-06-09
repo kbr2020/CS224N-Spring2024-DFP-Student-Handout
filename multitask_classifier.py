@@ -454,9 +454,9 @@ def train_multitask(args):
 
     
 def train_fairness(args):
-
+    
     device = torch.device('cuda') if args.use_gpu else torch.device('cpu')
-    saved = torch.load(args.filepath)
+    saved = torch.load(args.fairness_file)
     config = saved['model_config']
     model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
     model.load_state_dict(saved['model'])
@@ -704,6 +704,7 @@ if __name__ == "__main__":
         test_multitask(args)
     #calculate_fairness(args)
     if args.train_fairness_End:
+        args.filepath = f'{args.fine_tune_mode}-{args.epochs}-{args.lr}-{args.reduced}-SMART-{args.SMART}_COS:{args.cosine_sim}_FAIR:True_multitask.pt'
         train_fairness(args)
     calculate_fairness(args)
 
