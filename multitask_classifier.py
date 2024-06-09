@@ -25,9 +25,18 @@ from optimizer import AdamW
 from tqdm import tqdm
 from tokenizer import BertTokenizer
 
-from SMART import kl_loss, SMART_loss, symkl_loss
+from SMART import kl_loss, SMART_loss
 
-
+def symkl_loss(input, target, reduction='sum'):
+    return F.kl_div(
+        F.log_softmax(input, dim=-1),
+        F.softmax(target, dim=-1),
+        reduction=reduction,
+    ) + F.kl_div(
+        F.log_softmax(target, dim=-1),
+        F.softmax(input, dim=-1),
+        reduction=reduction,
+    ) 
 
 from datasets import (
     SentenceClassificationDataset,
