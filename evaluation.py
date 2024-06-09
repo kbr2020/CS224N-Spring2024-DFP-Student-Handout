@@ -38,8 +38,8 @@ def model_eval_fair(fair_dataloader, model, device):
             logits_1 = model.predict_sentiment(b_ids1, b_mask1)
             logits_2 = model.predict_sentiment(b_ids2, b_mask2)
             print(b_sent_ids)
-            print(max(torch.softmax(logits_1,dim = -1).flatten().cpu().numpy()))
-            print(max(torch.softmax(logits_1,dim = -1).flatten().cpu().numpy()))
+            print(max(torch.softmax(logits_1,dim = -1).flatten().cpu().numpy(),dim = -1))
+            print(np.max(torch.softmax(logits_2,dim = -1).flatten().cpu().numpy(),dim = -1))
 
             y_hat_1 = logits_1.argmax(dim=-1).flatten().cpu().numpy()
             y_hat_2 = logits_2.argmax(dim=-1).flatten().cpu().numpy()
