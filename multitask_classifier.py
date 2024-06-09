@@ -475,12 +475,13 @@ def train_fairness(args):
     optimizer = AdamW(model.parameters(), lr=lr)
 
     
-    total_loss_fair = 0
-    num_batches_fair = 0
+
 
     best_dev_fair_acc = 0
 
     for epoch in range(args.epochs):
+        total_loss_fair = 0
+        num_batches_fair = 0
         for batch  in tqdm(fair_train_data_loader , desc=f'train-{epoch}', disable=TQDM_DISABLE):
             (b_ids1, b_mask1,
              b_ids2, b_mask2,
@@ -508,8 +509,10 @@ def train_fairness(args):
             num_batches_fair += 1
 
         fair_accuracy, fair_y_pred, fair_sent_ids = model_eval_fair(fair_dev_data_loader,model,device)
+        fair_train_accuracy, _, _ = model_eval_fair(fair_train_data_loader,model,device)
 
         if fair_accuracy >=  best_dev_fair_acc:
+            best_dev_fair_acc = fair_accuracy
             save_model(model, optimizer, args, config, args.filepath)
         
         print(f"Epoch {epoch}: train loss fair:: {total_loss_fair :.3f}, dev acc :: {fair_accuracy :.3f}")
