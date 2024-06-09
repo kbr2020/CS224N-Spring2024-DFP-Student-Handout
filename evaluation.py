@@ -15,6 +15,38 @@ import numpy as np
 
 TQDM_DISABLE = False
 
+def model_eval_prob(fair_dataloader, model, device):
+    model.eval()
+    fair_prob_1 = []
+    fair_prob_2 = []
+    with torch.no_grad():
+
+        for step, batch in enumerate(tqdm(fair_dataloader, desc=f'eval', disable=TQDM_DISABLE)):
+            (b_ids1, b_mask1,
+             b_ids2, b_mask2,
+             b_labels, b_sent_ids) = (batch['token_ids_1'], batch['attention_mask_1'],
+                          batch['token_ids_2'], batch['attention_mask_2'],
+                          batch['labels'], batch['sent_ids'])
+
+            b_ids1 = b_ids1.to(device)
+            b_mask1 = b_mask1.to(device)
+            b_ids2 = b_ids2.to(device)
+            b_mask2 = b_mask2.to(device)
+
+            logits_1 = model.predict_sentiment(b_ids1, b_mask1)
+            logits_2 = model.predict_sentiment(b_ids2, b_mask2)
+            #print(b_sent_ids)
+            z_1 = torch.softmax(logits_1,dim = -1)
+            z_2 = torch.softmax(logits_2,dim = -1)
+            #print(np.max(z_1,axis = 1))
+            #print(np.max(z_2,axis = 1))
+
+            fair_prob_1.extend(z_1)
+            fair_prob_2.extend(z_2)
+
+    
+    return fair_prob_1, fair_prob_2
+
 
 def model_eval_fair(fair_dataloader, model, device):
     model.eval()
