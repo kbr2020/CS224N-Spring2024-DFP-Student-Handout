@@ -484,6 +484,8 @@ def train_fairness(args):
 
     best_dev_fair_acc = 0
 
+    fair_prob_1, fair_prob_2 = model_eval_prob(fair_train_data_loader,model,device)
+
     for epoch in range(args.epochs):
         total_loss_fair = 0
         num_batches_fair = 0
@@ -505,6 +507,8 @@ def train_fairness(args):
             logits_2 = model.predict_sentiment(b_ids2, b_mask2)
             loss = (F.kl_div(F.log_softmax(logits_1,dim = -1),F.softmax(logits_2,dim = -1),reduction='sum') + 
                     F.kl_div(F.log_softmax(logits_2,dim = -1),F.softmax(logits_1,dim = -1),reduction='sum')) / args.batch_size
+            loss = loss+ (F.kl_div(F.log_softmax(logits_1,dim = -1),fair_prob_1,reduction='sum') + 
+                    F.kl_div(F.log_softmax(logits_2,dim = -1),F.fair_prob_2,reduction='sum')) / args.batch_size
             loss_v = loss.item()
 
             loss.backward()
