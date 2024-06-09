@@ -520,13 +520,13 @@ def train_fairness(args):
 def calculate_fairness(args):
     with torch.no_grad():
         device = torch.device('cuda') if args.use_gpu else torch.device('cpu')
-        saved = torch.load(args.filepath)
+        saved = torch.load(args.fairness_file)
         config = saved['model_config']
 
         model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
         model.load_state_dict(saved['model'])
         model = model.to(device)
-        print(f"Loaded model to test from {args.filepath}")
+        print(f"Loaded model to test from {args.fairness_file}")
         fair_dev_data = load_fairness_data(args.fair_dev)
         fair_dev_data = SentencePairDataset(fair_dev_data, args)
 
@@ -537,6 +537,7 @@ def calculate_fairness(args):
         fair_accuracy, fair_y_pred, fair_sent_ids = model_eval_fair(fair_data_loader,model,device)
 
         fair_prob_1, fair_prob_2 = model_eval_prob(fair_data_loader,model,device)
+        print("test")
         print(fair_prob_1)
         print(fair_prob_2)
 
