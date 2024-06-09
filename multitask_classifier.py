@@ -512,7 +512,7 @@ def train_fairness(args):
         if fair_accuracy >=  best_dev_fair_acc:
             save_model(model, optimizer, args, config, args.filepath)
         
-        print(f"Epoch {epoch}: train loss fair:: {total_loss_fair :.3f}, train acc :: {fair_train_accuracy :.3f}, dev acc :: {fair_accuracy :.3f}")
+        print(f"Epoch {epoch}: train loss fair:: {total_loss_fair :.3f}, dev acc :: {fair_accuracy :.3f}")
 
 
 
