@@ -517,6 +517,8 @@ def train_fairness(args):
 
 
 def calculate_fairness(args):
+    if not args.test_fairness_only:
+        args.fairness_file = args.filepath
     with torch.no_grad():
         device = torch.device('cuda') if args.use_gpu else torch.device('cpu')
         saved = torch.load(args.fairness_file)
@@ -548,15 +550,17 @@ def calculate_fairness(args):
 
 def test_multitask(args):
     '''Test and save predictions on the dev and test sets of all three tasks.'''
+    if args.test_only:
+        args.filepath = args.test_file
     with torch.no_grad():
         device = torch.device('cuda') if args.use_gpu else torch.device('cpu')
-        saved = torch.load(args.test_file)
+        saved = torch.load(args.filepath)
         config = saved['model_config']
 
         model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
         model.load_state_dict(saved['model'])
         model = model.to(device)
-        print(f"Loaded model to test from {args.test_file}")
+        print(f"Loaded model to test from {args.filepath}")
 
         sst_test_data, num_labels,para_test_data, sts_test_data = \
             load_multitask_data(args.sst_test,args.para_test, args.sts_test, split='test')
