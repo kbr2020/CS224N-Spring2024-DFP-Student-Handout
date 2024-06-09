@@ -497,8 +497,8 @@ def train_fairness(args):
             optimizer.zero_grad()
             logits_1 = model.predict_sentiment(b_ids1, b_mask1)
             logits_2 = model.predict_sentiment(b_ids2, b_mask2)
-            loss = (F.kl_div(F.logsoftmax(logits_1,dim = -1),F.softmax(logits_2,dim = -1),reduction='sum') + 
-                    F.kl_div(F.logsoftmax(logits_2,dim = -1),F.softmax(logits_1,dim = -1),reduction='sum')) / args.batch_size
+            loss = (F.kl_div(F.log_softmax(logits_1,dim = -1),F.softmax(logits_2,dim = -1),reduction='sum') + 
+                    F.kl_div(F.log_softmax(logits_2,dim = -1),F.softmax(logits_1,dim = -1),reduction='sum')) / args.batch_size
             loss_v = loss.item()
 
             loss.backward()
