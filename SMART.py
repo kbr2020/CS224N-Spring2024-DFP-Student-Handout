@@ -22,6 +22,17 @@ def kl_loss(input, target, reduction='sum'):
         reduction=reduction,
     )
 
+def sym_kl_loss(input, target, reduction='sum'):
+    return F.kl_div(
+        F.log_softmax(input, dim=-1),
+        F.softmax(target, dim=-1),
+        reduction=reduction,
+    ) + F.kl_div(
+        F.log_softmax(target, dim=-1),
+        F.softmax(input, dim=-1),
+        reduction=reduction,
+    ) 
+
 
 
 
