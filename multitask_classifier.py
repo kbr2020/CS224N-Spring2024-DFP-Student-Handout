@@ -38,7 +38,7 @@ from datasets import (
     load_fairness_data
 )
 
-from evaluation import model_eval_sst, model_eval_multitask, model_eval_test_multitask, model_eval_fair
+from evaluation import model_eval_sst, model_eval_multitask, model_eval_test_multitask, model_eval_fair, model_eval_prob
 
 
 TQDM_DISABLE=False
@@ -474,8 +474,6 @@ def train_fairness(args):
     lr = args.lr
     optimizer = AdamW(model.parameters(), lr=lr)
 
-    
-
 
     best_dev_fair_acc = 0
 
@@ -532,9 +530,15 @@ def calculate_fairness(args):
         fair_dev_data = load_fairness_data(args.fair_dev)
         fair_dev_data = SentencePairDataset(fair_dev_data, args)
 
+        
+
         fair_data_loader = DataLoader(fair_dev_data, shuffle = False, batch_size=args.batch_size, collate_fn= fair_dev_data.collate_fn)
 
         fair_accuracy, fair_y_pred, fair_sent_ids = model_eval_fair(fair_data_loader,model,device)
+
+        fair_prob_1, fair_prob_2 = model_eval_prob(fair_data_loader,model,device)
+        print(fair_prob_1)
+        print(fair_prob_2)
 
         with open(args.fair_dev_out, "w+") as f:
             print(f"dev sentiment acc :: {fair_accuracy :.3f}")
@@ -683,6 +687,7 @@ def get_args():
     parser.add_argument("--test_fairness_only", action='store_true')
 
     parser.add_argument("--train_fairness_End", action='store_true')
+    parser.add_argument("--fairness_file", type=str, default  = "" )
 
     args = parser.parse_args()
     return args
