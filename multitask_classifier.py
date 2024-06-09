@@ -475,7 +475,7 @@ def train_fairness(args):
     fair_train_data = SentenceClassificationDataset(fair_train_data, args)
     fair_dev_data = SentencePairDataset(fair_dev_data, args)
 
-    fair_train_data_loader = DataLoader(fair_train_data, shuffle = True, batch_size=args.batch_size, collate_fn= fair_dev_data.collate_fn)
+    fair_train_data_loader = DataLoader(fair_train_data, shuffle = False, batch_size=args.batch_size, collate_fn= fair_dev_data.collate_fn)
     fair_dev_data_loader = DataLoader(fair_dev_data, shuffle = False, batch_size=args.batch_size, collate_fn= fair_dev_data.collate_fn)
 
     lr = args.lr
@@ -508,10 +508,11 @@ def train_fairness(args):
             F_prob_1 = fair_prob_1[step]
             F_prob_2 = fair_prob_2[step]
 
+
             loss = (F.kl_div(F.log_softmax(logits_1,dim = -1),F.softmax(logits_2,dim = -1),reduction='sum') + 
                     F.kl_div(F.log_softmax(logits_2,dim = -1),F.softmax(logits_1,dim = -1),reduction='sum')) / args.batch_size
-            loss = loss+ (F.kl_div(F.log_softmax(logits_1,dim = -1),fair_prob_1,reduction='sum') + 
-                    F.kl_div(F.log_softmax(logits_2,dim = -1),F.fair_prob_2,reduction='sum')) / args.batch_size
+            loss = loss+ (F.kl_div(F.log_softmax(logits_1,dim = -1),F_prob_1,reduction='sum') + 
+                    F.kl_div(F.log_softmax(logits_2,dim = -1),F_prob_2,reduction='sum')) / args.batch_size
             loss_v = loss.item()
 
             loss.backward()
