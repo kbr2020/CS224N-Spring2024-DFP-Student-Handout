@@ -462,6 +462,13 @@ def train_fairness(args):
     model.load_state_dict(saved['model'])
     model = model.to(device)
 
+    sst_dev_data, num_labels,para_dev_data, sts_dev_data = load_multitask_data(args.sst_dev,args.para_dev,args.sts_dev, split ='train')
+
+    sst_dev_data = SentenceClassificationDataset(sst_dev_data, args)
+
+    sst_dev_dataloader = DataLoader(sst_dev_data, shuffle=False, batch_size=args.batch_size,
+                                    collate_fn=sst_dev_data.collate_fn)
+
     fair_dev_data = load_fairness_data(args.fair_dev)
     fair_train_data = load_fairness_data(args.fair_train)
 
@@ -506,13 +513,16 @@ def train_fairness(args):
             total_loss_fair += loss_v
             num_batches_fair += 1
 
-        fair_accuracy, fair_y_pred, fair_sent_ids = model_eval_fair(fair_dev_data_loader,model,device)
+        fair_accuracy, fair_y_pred, fair_sent_ids =  model_eval_fair(fair_dev_data_loader,model,device)
+        sst_acc, f1, y_pred, y_true, sents, sent_ids  =  model_eval_sst(sst_dev_dataloader, model, device)
+        
 
         if fair_accuracy >=  best_dev_fair_acc:
             best_dev_fair_acc = fair_accuracy
             save_model(model, optimizer, args, config, args.filepath)
         
         print(f"Epoch {epoch}: train loss fair:: {total_loss_fair :.3f}, dev acc :: {fair_accuracy :.3f}")
+        print(f"Epoch {epoch} sst_acc dev :: {sst_acc :.3f}"))
 
 
 
