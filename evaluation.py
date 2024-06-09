@@ -41,7 +41,7 @@ def model_eval_fair(fair_dataloader, model, device):
             z_1 = torch.softmax(logits_1,dim = -1).cpu().numpy()
             z_2 = torch.softmax(logits_2,dim = -1).cpu().numpy()
             print(np.max(z_1,axis = 1))
-            print(np.max(z_1,axis = 2))
+            print(np.max(z_1,axis = 1))
             y_hat_1 = logits_1.argmax(dim=-1).flatten().cpu().numpy()
             y_hat_2 = logits_2.argmax(dim=-1).flatten().cpu().numpy()
 
