@@ -485,11 +485,11 @@ def train_fairness(args):
     best_dev_fair_acc = 0
 
     fair_prob_1, fair_prob_2 = model_eval_prob(fair_train_data_loader,model,device)
-
+    print(len(fair_prob_1))
     for epoch in range(args.epochs):
         total_loss_fair = 0
         num_batches_fair = 0
-        for batch  in tqdm(fair_train_data_loader , desc=f'train-{epoch}', disable=TQDM_DISABLE):
+        for step, batch in enumerate(tqdm(fair_dataloader, desc=f'eval', disable=TQDM_DISABLE)):
             (b_ids1, b_mask1,
              b_ids2, b_mask2,
              b_labels, b_sent_ids) = (batch['token_ids_1'], batch['attention_mask_1'],
@@ -505,6 +505,10 @@ def train_fairness(args):
             optimizer.zero_grad()
             logits_1 = model.predict_sentiment(b_ids1, b_mask1)
             logits_2 = model.predict_sentiment(b_ids2, b_mask2)
+
+            F_prob_1 = fair_prob_1[step]
+            F_prob_2 = fair_prob_2[step]
+
             loss = (F.kl_div(F.log_softmax(logits_1,dim = -1),F.softmax(logits_2,dim = -1),reduction='sum') + 
                     F.kl_div(F.log_softmax(logits_2,dim = -1),F.softmax(logits_1,dim = -1),reduction='sum')) / args.batch_size
             loss = loss+ (F.kl_div(F.log_softmax(logits_1,dim = -1),fair_prob_1,reduction='sum') + 
