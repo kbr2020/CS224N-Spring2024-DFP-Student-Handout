@@ -213,7 +213,7 @@ def load_fairness_data(fairness_filename,split='train'):
     fairness_data = []
     if split == 'test':
         with open(fairness_filename, 'r') as fp:
-            for record in csv.DictReader(fp,delimiter = '\t'):
+            for record in csv.DictReader(fp):
                 sent_id = record['id'].lower().strip()
                 fairness_data.append((preprocess_string(record['sentence1']),
                                         preprocess_string(record['sentence2']),
@@ -221,7 +221,7 @@ def load_fairness_data(fairness_filename,split='train'):
 
     else:
         with open(fairness_filename, 'r') as fp:
-            for record in csv.DictReader(fp,delimiter = '\t'):
+            for record in csv.DictReader(fp):
                 try:
                     sent_id = record['id'].lower().strip()
                     fairness_data.append((preprocess_string(record['sentence1']),
