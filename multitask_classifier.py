@@ -25,7 +25,7 @@ from optimizer import AdamW
 from tqdm import tqdm
 from tokenizer import BertTokenizer
 
-from SMART import kl_loss, SMART_loss
+from SMART import kl_loss, SMART_loss, sym_kl_loss
 
 
 
@@ -45,7 +45,7 @@ TQDM_DISABLE=False
 
 def smart_regularization(loss_value, smart_loss_weight, embeddings, logits, last_layers):
 
-    smart_loss_fn = SMART_loss(eval_func = last_layers, loss_func = kl_loss,num_steps = 1, step_size = 1e-5,epsilon = 1e-6, noise_var = 1e-6 )             
+    smart_loss_fn = SMART_loss(eval_func = last_layers, loss_func = sym_kl_loss,num_steps = 1, step_size = 1e-5,epsilon = 1e-6, noise_var = 1e-6 )             
     loss_value += smart_loss_weight * smart_loss_fn(embeddings, logits)    
 
     return loss_value
@@ -339,10 +339,6 @@ def train_multitask(args):
             loss = F.mse_loss(logit.view(-1),b_labels.float(), reduction='sum') / args.batch_size
             loss_v = loss.item()
 
-            if args.SMART:
-                input_ids, attention_mask = model.concatinate_two_sentence(b_ids1, b_mask1,b_ids2, b_mask2)
-                embeds = model.forward(input_ids,attention_mask)
-                smart_regularization(loss_v, args.weight_regularisation ,embeds, logit, model.last_lay_sim)
 
             loss.backward()
             optimizer.step()
