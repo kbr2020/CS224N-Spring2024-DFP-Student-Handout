@@ -577,6 +577,7 @@ def get_args():
     parser.add_argument("--sts_dev", type=str, default="data/sts-dev.csv")
     parser.add_argument("--sts_test", type=str, default="data/sts-test-student.csv")
 
+    parser.add_argument("--fair_train", type=str, default="data/gender_fair_train.csv")
     parser.add_argument("--fair_dev", type=str, default="data/gender_fair_dev.csv")
 
     parser.add_argument("--seed", type=int, default=11711)
@@ -612,7 +613,7 @@ def get_args():
     parser.add_argument("--weight_regularisation", type=int, default = 1e-2)
 
     parser.add_argument("--diff_heads", action='store_true')
-    parser.add_argument("--calculate_gender_fairness", action='store_true')
+    parser.add_argument("--test_fairness_only", action='store_true')
 
     args = parser.parse_args()
     return args
@@ -626,6 +627,4 @@ if __name__ == "__main__":
         if  not args.test_only:
             train_multitask(args)
         test_multitask(args)
-    else:
-        print("Fariness")
-        calculate_fairness(args)
+    calculate_fairness(args)
