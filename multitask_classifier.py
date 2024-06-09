@@ -699,6 +699,6 @@ if __name__ == "__main__":
     #calculate_fairness(args)
     if args.train_fairness_End:
         train_fairness(args)
-        calculate_fairness(args)
+    calculate_fairness(args)
 
     
