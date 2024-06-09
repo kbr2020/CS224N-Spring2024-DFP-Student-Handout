@@ -511,7 +511,7 @@ def train_fairness(args):
 
             loss = (F.kl_div(F.log_softmax(logits_1,dim = -1),F.softmax(logits_2,dim = -1),reduction='sum') + 
                     F.kl_div(F.log_softmax(logits_2,dim = -1),F.softmax(logits_1,dim = -1),reduction='sum')) / args.batch_size
-            loss = loss+ (F.kl_div(F.log_softmax(logits_1,dim = -1),F_prob_1,reduction='sum') + 
+            loss = loss+ 0.1*(F.kl_div(F.log_softmax(logits_1,dim = -1),F_prob_1,reduction='sum') + 
                     F.kl_div(F.log_softmax(logits_2,dim = -1),F_prob_2,reduction='sum')) / args.batch_size
             loss_v = loss.item()
 
