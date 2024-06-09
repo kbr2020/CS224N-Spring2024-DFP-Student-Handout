@@ -237,6 +237,7 @@ def save_model(model, optimizer, args, config, filepath):
 
 
 
+
 def train_multitask(args):
     '''Train MultitaskBERT.
 
@@ -451,6 +452,71 @@ def train_multitask(args):
         print(f"Epoch {epoch}: train loss PAR:: {train_loss_par :.3f}, train acc :: {train_loss_sts :.3f}, dev acc :: {paraphrase_accuracy :.3f}")
         print(f"Epoch {epoch}: Accuracy :: {dev_acc:3f} ")
 
+    
+def train_fairness(args):
+
+    device = torch.device('cuda') if args.use_gpu else torch.device('cpu')
+    saved = torch.load(args.filepath)
+    config = saved['model_config']
+    model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
+    model.load_state_dict(saved['model'])
+    model = model.to(device)
+
+    fair_dev_data = load_fairness_data(args.fair_dev)
+    fair_train_data = load_fairness_data(args.fair_train)
+
+    fair_train_data = SentenceClassificationDataset(fair_train_data, args)
+    fair_dev_data = SentencePairDataset(fair_dev_data, args)
+
+    fair_train_data_loader = DataLoader(fair_train_data, shuffle = True, batch_size=args.batch_size, collate_fn= fair_dev_data.collate_fn)
+    fair_dev_data_loader = DataLoader(fair_dev_data, shuffle = False, batch_size=args.batch_size, collate_fn= fair_dev_data.collate_fn)
+
+    lr = args.lr
+    optimizer = AdamW(model.parameters(), lr=lr)
+
+    
+    total_loss_fair = 0
+    num_batches_fair = 0
+
+    best_dev_fair_acc = 0
+
+    for epoch in range(args.epochs):
+        for batch  in tqdm(fair_train_data_loader , desc=f'train-{epoch}', disable=TQDM_DISABLE):
+            (b_ids1, b_mask1,
+             b_ids2, b_mask2,
+             b_labels, b_sent_ids) = (batch['token_ids_1'], batch['attention_mask_1'],
+                          batch['token_ids_2'], batch['attention_mask_2'],
+                          batch['labels'], batch['sent_ids'])
+
+            b_ids1 = b_ids1.to(device)
+            b_mask1 = b_mask1.to(device)
+            b_ids2 = b_ids2.to(device)
+            b_mask2 = b_mask2.to(device)
+            b_labels = b_labels.to(device)
+
+            optimizer.zero_grad()
+            logits_1 = model.predict_sentiment(b_ids1, b_mask1)
+            logits_2 = model.predict_sentiment(b_ids2, b_mask2)
+            proba_1 = F.softmax(logits_1,dim = -1 )
+            proba_2 = F.softmax(logits_2,dim = -1)
+            loss = (F.kl_div(proba_1,proba_2,reduction='sum') + F.kl_div(proba_2,proba_1,reduction='sum')) / args.batch_size
+            loss_v = loss.item()
+
+            loss.backward()
+            optimizer.step()
+
+            total_loss_fair += loss_v
+            num_batches_fair += 1
+
+        fair_accuracy, fair_y_pred, fair_sent_ids = model_eval_fair(fair_dev_data_loader,model,device)
+        fair_train_accuracy, fair_y_pred, fair_sent_ids = model_eval_fair(fair_train_data_loader,model,device)
+
+        if fair_accuracy >=  best_dev_fair_acc:
+            save_model(model, optimizer, args, config, args.filepath)
+        
+        print(f"Epoch {epoch}: train loss fair:: {total_loss_fair :.3f}, train acc :: {fair_train_accuracy :.3f}, dev acc :: {fair_accuracy :.3f}")
+
+
 
 def calculate_fairness(args):
     with torch.no_grad():
@@ -615,6 +681,8 @@ def get_args():
     parser.add_argument("--diff_heads", action='store_true')
     parser.add_argument("--test_fairness_only", action='store_true')
 
+    parser.add_argument("--train_fairness_End", action='store_true')
+
     args = parser.parse_args()
     return args
 
@@ -628,3 +696,8 @@ if __name__ == "__main__":
             train_multitask(args)
         test_multitask(args)
     calculate_fairness(args)
+    if train_fairness_End:
+        train_fairness(args)
+        calculate_fairness(args)
+
+    
