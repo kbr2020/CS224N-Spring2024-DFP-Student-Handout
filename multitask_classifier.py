@@ -483,7 +483,6 @@ def train_fairness(args):
 
 
     best_dev_fair_acc = 0
-
     fair_prob_1, fair_prob_2 = model_eval_prob(fair_train_data_loader,model,device)
     print(len(fair_prob_1))
     for epoch in range(args.epochs):
