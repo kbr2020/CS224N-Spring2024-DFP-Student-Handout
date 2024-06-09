@@ -522,7 +522,7 @@ def train_fairness(args):
             save_model(model, optimizer, args, config, args.filepath)
         
         print(f"Epoch {epoch}: train loss fair:: {total_loss_fair :.3f}, dev acc :: {fair_accuracy :.3f}")
-        print(f"Epoch {epoch} sst_acc dev :: {sst_acc :.3f}"))
+        print(f"Epoch {epoch} sst_acc dev :: {sst_acc :.3f}")
 
 
 
