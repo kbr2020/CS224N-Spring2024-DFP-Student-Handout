@@ -497,9 +497,8 @@ def train_fairness(args):
             optimizer.zero_grad()
             logits_1 = model.predict_sentiment(b_ids1, b_mask1)
             logits_2 = model.predict_sentiment(b_ids2, b_mask2)
-            proba_1 = F.softmax(logits_1,dim = -1 )
-            proba_2 = F.softmax(logits_2,dim = -1)
-            loss = (F.kl_div(proba_1,proba_2,reduction='sum') + F.kl_div(proba_2,proba_1,reduction='sum')) / args.batch_size
+            loss = (F.kl_div(F.logsoftmax(logits_1,dim = -1),F.softmax(logits_2,dim = -1),reduction='sum') + 
+                    F.kl_div(F.logsoftmax(logits_2,dim = -1),F.softmax(logits_1,dim = -1),reduction='sum')) / args.batch_size
             loss_v = loss.item()
 
             loss.backward()
@@ -509,7 +508,6 @@ def train_fairness(args):
             num_batches_fair += 1
 
         fair_accuracy, fair_y_pred, fair_sent_ids = model_eval_fair(fair_dev_data_loader,model,device)
-        fair_train_accuracy, fair_y_pred, fair_sent_ids = model_eval_fair(fair_train_data_loader,model,device)
 
         if fair_accuracy >=  best_dev_fair_acc:
             save_model(model, optimizer, args, config, args.filepath)
