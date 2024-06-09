@@ -627,4 +627,5 @@ if __name__ == "__main__":
             train_multitask(args)
         test_multitask(args)
     else:
+        print("Fariness")
         calculate_fairness(args)
