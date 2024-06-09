@@ -454,7 +454,7 @@ def train_multitask(args):
 
     
 def train_fairness(args):
-    
+
     device = torch.device('cuda') if args.use_gpu else torch.device('cpu')
     saved = torch.load(args.fairness_file)
     config = saved['model_config']
@@ -507,7 +507,6 @@ def train_fairness(args):
             num_batches_fair += 1
 
         fair_accuracy, fair_y_pred, fair_sent_ids = model_eval_fair(fair_dev_data_loader,model,device)
-        fair_train_accuracy, _, _ = model_eval_fair(fair_train_data_loader,model,device)
 
         if fair_accuracy >=  best_dev_fair_acc:
             best_dev_fair_acc = fair_accuracy
