@@ -16,6 +16,44 @@ import numpy as np
 TQDM_DISABLE = False
 
 
+def model_eval_fair(fair_dataloader, model, device):
+    model.eval()
+    fair_true = []
+    fair_pred = []
+    fair_sent_ids = []
+    with torch.no_grad():
+
+        for step, batch in enumerate(tqdm(fair_dataloader, desc=f'eval', disable=TQDM_DISABLE)):
+            (b_ids1, b_mask1,
+             b_ids2, b_mask2,
+             b_labels, b_sent_ids) = (batch['token_ids_1'], batch['attention_mask_1'],
+                          batch['token_ids_2'], batch['attention_mask_2'],
+                          batch['labels'], batch['sent_ids'])
+
+            b_ids1 = b_ids1.to(device)
+            b_mask1 = b_mask1.to(device)
+            b_ids2 = b_ids2.to(device)
+            b_mask2 = b_mask2.to(device)
+
+            logits_1 = model.predict_sentiment(b_ids1, b_mask1)
+            logits_2 = model.predict_sentiment(b_ids2, b_mask2)
+
+            y_hat_1 = logits_1.argmax(dim=-1).flatten().cpu().numpy()
+            y_hat_2 = logits_2.argmax(dim=-1).flatten().cpu().numpy()
+
+            y_hat = np.abs(y_hat_1 - y_hat_2)
+            b_labels = b_labels.flatten().cpu().numpy()
+
+            fair_pred.extend(y_hat)
+            fair_true.extend(b_labels)
+            fair_sent_ids.extend(b_sent_ids)
+
+        fairness_accuracy = np.mean(np.array(fair_pred) == np.array(fair_true))
+    
+    print(f'Fairness accuracy: {fairness_accuracy:.3f}')
+    return fairness_accuracy, fair_pred, fair_sent_ids
+
+
 # Evaluate multitask model on SST only.
 def model_eval_sst(dataloader, model, device):
     model.eval()  # Switch to eval model, will turn off randomness like dropout.

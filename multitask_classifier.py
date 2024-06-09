@@ -34,10 +34,11 @@ from datasets import (
     SentenceClassificationTestDataset,
     SentencePairDataset,
     SentencePairTestDataset,
-    load_multitask_data
+    load_multitask_data,
+    load_fairness_data
 )
 
-from evaluation import model_eval_sst, model_eval_multitask, model_eval_test_multitask
+from evaluation import model_eval_sst, model_eval_multitask, model_eval_test_multitask, model_eval_fair
 
 
 TQDM_DISABLE=False
@@ -231,6 +232,9 @@ def save_model(model, optimizer, args, config, filepath):
 
     torch.save(save_info, filepath)
     print(f"save the model to {filepath}")
+
+
+
 
 
 def train_multitask(args):
@@ -448,6 +452,29 @@ def train_multitask(args):
         print(f"Epoch {epoch}: Accuracy :: {dev_acc:3f} ")
 
 
+def calculate_fairness(args):
+    with torch.no_grad():
+        device = torch.device('cuda') if args.use_gpu else torch.device('cpu')
+        saved = torch.load(args.filepath)
+        config = saved['model_config']
+
+        model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
+        model.load_state_dict(saved['model'])
+        model = model.to(device)
+        print(f"Loaded model to test from {args.filepath}")
+        fair_dev_data = load_fairness_data(args.fair_dev)
+        fair_dev_data = SentencePairDataset(fair_dev_data, args)
+
+        fair_data_loader = DataLoader(fair_dev_data, shuffle = False, batch_size=args.batch_size, collate_fn= fair_dev_data.collate_fn)
+
+        fair_accuracy, fair_y_pred, fair_sent_ids = model_eval_fair(fair_data_loader,model,device)
+
+        with open(args.fair_dev_out, "w+") as f:
+            print(f"dev sentiment acc :: {fair_accuracy :.3f}")
+            f.write(f"id \t Predicted_Sentiment \n")
+            for p, s in zip(fair_sent_ids, fair_y_pred):
+                f.write(f"{p} , {s} \n")
+
 def test_multitask(args):
     '''Test and save predictions on the dev and test sets of all three tasks.'''
     with torch.no_grad():
@@ -550,6 +577,8 @@ def get_args():
     parser.add_argument("--sts_dev", type=str, default="data/sts-dev.csv")
     parser.add_argument("--sts_test", type=str, default="data/sts-test-student.csv")
 
+    parser.add_argument("--fair_dev", type=str, default="data/fair-dev.csv")
+
     parser.add_argument("--seed", type=int, default=11711)
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--fine-tune-mode", type=str,
@@ -559,6 +588,8 @@ def get_args():
 
     parser.add_argument("--sst_dev_out", type=str, default="predictions/sst-dev-output.csv")
     parser.add_argument("--sst_test_out", type=str, default="predictions/sst-test-output.csv")
+
+    parser.add_argument("--fair_dev_out", type=str, default="predictions/fair-dev-output.csv")
 
     parser.add_argument("--para_dev_out", type=str, default="predictions/para-dev-output.csv")
     parser.add_argument("--para_test_out", type=str, default="predictions/para-test-output.csv")
@@ -581,6 +612,7 @@ def get_args():
     parser.add_argument("--weight_regularisation", type=int, default = 1e-2)
 
     parser.add_argument("--diff_heads", action='store_true')
+    parser.add_argument("--calculate_gender_fairness", action='store_true')
 
     args = parser.parse_args()
     return args
@@ -590,6 +622,9 @@ if __name__ == "__main__":
     args = get_args()
     args.filepath = f'{args.fine_tune_mode}-{args.epochs}-{args.lr}-{args.reduced}-SMART-{args.SMART}_COS:{args.cosine_sim}_multitask.pt' # Save path.
     seed_everything(args.seed)
-    if  not args.test_only:
-        train_multitask(args)
-    test_multitask(args)
+    if not args.calculate_gender_fairness:
+        if  not args.test_only:
+            train_multitask(args)
+        test_multitask(args)
+    else:
+        calculate_fairness(args)

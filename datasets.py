@@ -207,7 +207,30 @@ class SentencePairTestDataset(Dataset):
             }
 
         return batched_data
+    
 
+def load_fairness_data(fairness_filename,split='train'):
+    fairness_data = []
+    if split == 'test':
+        with open(fairness_filename, 'r') as fp:
+            for record in csv.DictReader(fp,delimiter = '\t'):
+                sent_id = record['id'].lower().strip()
+                fairness_data.append((preprocess_string(record['sentence1']),
+                                        preprocess_string(record['sentence2']),
+                                        sent_id))
+
+    else:
+        with open(fairness_filename, 'r') as fp:
+            for record in csv.DictReader(fp,delimiter = '\t'):
+                try:
+                    sent_id = record['id'].lower().strip()
+                    fairness_data.append((preprocess_string(record['sentence1']),
+                                            preprocess_string(record['sentence2']),
+                                            int(float(record['similarity'])),sent_id))
+                except:
+                    pass
+    print(f"Loaded {len(fairness_data)} {split} examples from {fairness_filename}")
+    return fairness_data
 
 def load_multitask_data(sentiment_filename,paraphrase_filename,similarity_filename,split='train'):
     sentiment_data = []
