@@ -548,9 +548,6 @@ def calculate_fairness(args):
         fair_accuracy, fair_y_pred, fair_sent_ids = model_eval_fair(fair_data_loader,model,device)
 
         fair_prob_1, fair_prob_2 = model_eval_prob(fair_data_loader,model,device)
-        print("test")
-        print(fair_prob_1)
-        print(fair_prob_2)
 
         with open(args.fair_dev_out, "w+") as f:
             print(f"dev sentiment acc :: {fair_accuracy :.3f}")
