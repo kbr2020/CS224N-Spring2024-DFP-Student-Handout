@@ -550,13 +550,13 @@ def test_multitask(args):
     '''Test and save predictions on the dev and test sets of all three tasks.'''
     with torch.no_grad():
         device = torch.device('cuda') if args.use_gpu else torch.device('cpu')
-        saved = torch.load(args.filepath)
+        saved = torch.load(args.test_file)
         config = saved['model_config']
 
         model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
         model.load_state_dict(saved['model'])
         model = model.to(device)
-        print(f"Loaded model to test from {args.filepath}")
+        print(f"Loaded model to test from {args.test_file}")
 
         sst_test_data, num_labels,para_test_data, sts_test_data = \
             load_multitask_data(args.sst_test,args.para_test, args.sts_test, split='test')
@@ -674,6 +674,7 @@ def get_args():
     parser.add_argument("--lr", type=float, help="learning rate", default=1e-5)
 
     parser.add_argument("--test_only", action='store_true', help="If only need to test")
+    parser.add_argument("--test_file", type=str, default  = "" )
     parser.add_argument("--further_training", action='store_true')
     parser.add_argument("--further_training_file", type=str, default  = "" )
 
