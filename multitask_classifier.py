@@ -758,9 +758,10 @@ def test_numb_SST(args):
         sst_dev_dataloader = DataLoader(sst_dev_data, shuffle=False, batch_size=args.batch_size,
                                         collate_fn=sst_dev_data.collate_fn)
         
-        dic_1, dic_2 = model_eval_sst_diff(sst_dev_dataloader,model,device)
+        dic_1, dic_2,dic_3= model_eval_sst_diff(sst_dev_dataloader,model,device)
         print(list(dic_1))
         print(list(dic_2))
+        print(list(dic_3))
 
 
 

@@ -149,8 +149,9 @@ def model_eval_sst_diff(dataloader, model, device):
     a = y_true[mask]
     unique, counts = np.unique(a, return_counts=True)
     unique2, counts2 = np.unique(y_true, return_counts=True)
+    unique3, counts3 = np.unique(y_pred, return_counts=True)
 
-    return zip(unique,counts), zip(unique2, counts2)
+    return zip(unique,counts), zip(unique2, counts2), zip(unique3, counts3)
 
 
 # Evaluate multitask model on dev sets.
