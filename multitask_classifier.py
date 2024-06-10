@@ -283,6 +283,15 @@ def train_multitask(args):
                                          collate_fn=sts_train_data.collate_fn)
     sts_dev_dataloader = DataLoader(sts_dev_data, shuffle=False, batch_size=args.batch_size,
                                         collate_fn=sts_dev_data.collate_fn)
+    
+    fair_dev_data = load_fairness_data(args.fair_dev)
+    fair_train_data = load_fairness_data(args.fair_train)
+
+    fair_train_data = SentenceClassificationDataset(fair_train_data, args)
+    fair_dev_data = SentencePairDataset(fair_dev_data, args)
+
+    fair_train_data_loader = DataLoader(fair_train_data, shuffle = False, batch_size=args.batch_size, collate_fn= fair_dev_data.collate_fn)
+    fair_dev_data_loader = DataLoader(fair_dev_data, shuffle = False, batch_size=args.batch_size, collate_fn= fair_dev_data.collate_fn)
 
     # Init model.
     
@@ -324,7 +333,9 @@ def train_multitask(args):
         train_loss_sst = 0
         train_loss_par = 0
         train_loss_sts = 0
+        total_loss_fair = 0
 
+        num_batches_fair = 0
         num_batches_sst = 0
         num_batches_par = 0
         num_batches_sts = 0
@@ -407,6 +418,37 @@ def train_multitask(args):
 
             train_loss_sst += loss_v
             num_batches_sst += 1
+        
+        for step, batch in enumerate(tqdm(fair_train_data_loader, desc=f'train', disable=TQDM_DISABLE)):
+            (b_ids1, b_mask1,
+             b_ids2, b_mask2,
+             b_labels, b_sent_ids) = (batch['token_ids_1'], batch['attention_mask_1'],
+                          batch['token_ids_2'], batch['attention_mask_2'],
+                          batch['labels'], batch['sent_ids'])
+
+            b_ids1 = b_ids1.to(device)
+            b_mask1 = b_mask1.to(device)
+            b_ids2 = b_ids2.to(device)
+            b_mask2 = b_mask2.to(device)
+            b_labels = b_labels.to(device)
+
+            optimizer.zero_grad()
+            logits_1 = model.predict_sentiment(b_ids1, b_mask1)
+            logits_2 = model.predict_sentiment(b_ids2, b_mask2)
+
+
+
+            loss = (F.kl_div(F.log_softmax(logits_1,dim = -1),F.softmax(logits_2,dim = -1),reduction='sum') + 
+                    F.kl_div(F.log_softmax(logits_2,dim = -1),F.softmax(logits_1,dim = -1),reduction='sum')) / args.batch_size
+            # loss = loss+ (0*F.kl_div(F.log_softmax(logits_1,dim = -1),F_prob_1,reduction='sum') + 
+            #       0*F.kl_div(F.log_softmax(logits_2,dim = -1),F_prob_2,reduction='sum')) / args.batch_size
+            loss_v = loss.item()
+
+            loss.backward()
+            optimizer.step()
+
+            total_loss_fair += loss_v
+            num_batches_fair += 1
 
         
 
@@ -425,6 +467,7 @@ def train_multitask(args):
                          model, device)
         
         dev_acc = (sentiment_accuracy + paraphrase_accuracy + 0.5 + 0.5*sts_corr)/3
+        fair_accuracy, fair_y_pred, fair_sent_ids =  model_eval_fair(fair_dev_data_loader,model,device)
 
         if args.diff_heads:
             best_dev_acc = dev_acc
@@ -446,15 +489,19 @@ def train_multitask(args):
             
             save_model(best_model, optimizer, args, config, args.filepath)
         else:
-            if dev_acc > best_dev_acc:
-                best_dev_acc = dev_acc
-                save_model(model, optimizer, args, config, args.filepath)
+        #    if dev_acc > best_dev_acc:
+        #        best_dev_acc = dev_acc
+        #        save_model(model, optimizer, args, config, args.filepath)
+             if dev_acc + 0.1*fair_accuracy > best_dev_acc:
+                 best_dev_acc = dev_acc + 0.1*fair_accuracy
+                 save_model(model, optimizer, args, config, args.filepath)
 
          
 
         print(f"Epoch {epoch}: train loss SST:: {train_loss_sst :.3f}, train acc :: {train_loss_sts :.3f}, dev acc :: {sentiment_accuracy :.3f}")
         print(f"Epoch {epoch}: train loss STS:: {train_loss_sts :.3f}, train acc :: {train_loss_sts :.3f}, dev acc :: {sts_corr :.3f}")
         print(f"Epoch {epoch}: train loss PAR:: {train_loss_par :.3f}, train acc :: {train_loss_sts :.3f}, dev acc :: {paraphrase_accuracy :.3f}")
+        print(f"Epoch {epoch}: train loss fair:: {total_loss_fair :.3f}, dev acc :: {fair_accuracy :.3f}")
         print(f"Epoch {epoch}: Accuracy :: {dev_acc:3f} ")
 
     
@@ -560,7 +607,7 @@ def train_fairness(args):
         total_loss_fair = total_loss_fair / (num_batches_fair)
         print(num_batches_fair)
         if 2*sst_acc + fair_accuracy >=  best_acc_combined:
-            best_dev_fair_acc = fair_accuracy
+            best_acc_combined = fair_accuracy
             save_model(model, optimizer, args, config, args.filepath)
         
         print(f"Epoch {epoch}: train loss fair:: {total_loss_fair :.3f}, dev acc :: {fair_accuracy :.3f}")
@@ -701,7 +748,7 @@ def get_args():
     parser.add_argument("--sts_dev", type=str, default="data/sts-dev.csv")
     parser.add_argument("--sts_test", type=str, default="data/sts-test-student.csv")
 
-    parser.add_argument("--fair_train", type=str, default="data/gender_fair_train.csv")
+    parser.add_argument("--fair_train", type=str, default="data/gender_fair_train_small.csv")
     parser.add_argument("--fair_dev", type=str, default="data/gender_fair_dev.csv")
 
     parser.add_argument("--seed", type=int, default=11711)
