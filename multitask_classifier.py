@@ -557,7 +557,7 @@ def train_fairness(args):
         sst_acc, f1, y_pred, y_true, sents, sent_ids  =  model_eval_sst(sst_dev_dataloader, model, device)
         
         train_loss_sst = train_loss_sst / (num_batches_sst)
-        train_loss_fair = train_loss_fair / (num_batches_fair)
+        total_loss_fair = total_loss_fair / (num_batches_fair)
         print(num_batches_fair)
         if 2*sst_acc + fair_accuracy >=  best_acc_combined:
             best_dev_fair_acc = fair_accuracy
