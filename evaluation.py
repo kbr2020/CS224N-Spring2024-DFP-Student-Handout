@@ -145,7 +145,7 @@ def model_eval_sst_diff(dataloader, model, device):
     f1 = f1_score(y_true, y_pred, average='macro')
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
-    mask = (y_true != y_pred)
+    mask = (y_true == y_pred)
     a = y_true[mask]
     unique, counts = np.unique(a, return_counts=True)
     unique2, counts2 = np.unique(y_true, return_counts=True)
