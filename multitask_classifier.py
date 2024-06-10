@@ -396,29 +396,6 @@ def train_multitask(args):
             train_loss_par += loss_v
             num_batches_par += 1
 
-        for batch  in tqdm(sst_train_dataloader , desc=f'train-{epoch}', disable=TQDM_DISABLE):
-            b_ids, b_mask, b_labels = (batch['token_ids'],
-                                       batch['attention_mask'], batch['labels'])
-
-            b_ids = b_ids.to(device)
-            b_mask = b_mask.to(device)
-            b_labels = b_labels.to(device)
-
-            optimizer.zero_grad()
-            logits = model.predict_sentiment(b_ids, b_mask)
-            loss = F.cross_entropy(logits, b_labels.view(-1), reduction='sum') / args.batch_size
-            loss_v = loss.item()
-
-            if args.SMART:
-                embeds = model.forward(b_ids,b_mask)
-                smart_regularization(loss_v, args.weight_regularisation ,embeds, logits, model.last_lay_sent)
-
-            loss.backward()
-            optimizer.step()
-
-            train_loss_sst += loss_v
-            num_batches_sst += 1
-        
         for step, batch in enumerate(tqdm(fair_train_data_loader, desc=f'train', disable=TQDM_DISABLE)):
             (b_ids1, b_mask1,
              b_ids2, b_mask2,
@@ -449,6 +426,29 @@ def train_multitask(args):
 
             total_loss_fair += loss_v
             num_batches_fair += 1
+
+        for batch  in tqdm(sst_train_dataloader , desc=f'train-{epoch}', disable=TQDM_DISABLE):
+            b_ids, b_mask, b_labels = (batch['token_ids'],
+                                       batch['attention_mask'], batch['labels'])
+
+            b_ids = b_ids.to(device)
+            b_mask = b_mask.to(device)
+            b_labels = b_labels.to(device)
+
+            optimizer.zero_grad()
+            logits = model.predict_sentiment(b_ids, b_mask)
+            loss = F.cross_entropy(logits, b_labels.view(-1), reduction='sum') / args.batch_size
+            loss_v = loss.item()
+
+            if args.SMART:
+                embeds = model.forward(b_ids,b_mask)
+                smart_regularization(loss_v, args.weight_regularisation ,embeds, logits, model.last_lay_sent)
+
+            loss.backward()
+            optimizer.step()
+
+            train_loss_sst += loss_v
+            num_batches_sst += 1
 
         
 
