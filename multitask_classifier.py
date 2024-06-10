@@ -759,8 +759,8 @@ def test_numb_SST(args):
                                         collate_fn=sst_dev_data.collate_fn)
         
         dic_1, dic_2 = model_eval_sst_diff(sst_dev_dataloader,model,device)
-        print(dic_1)
-        print(dic_2)
+        print(list(dic_1))
+        print(list(dic_2))
 
 
 
