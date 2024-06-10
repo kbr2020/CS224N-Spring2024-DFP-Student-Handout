@@ -47,7 +47,7 @@ from datasets import (
     load_fairness_data
 )
 
-from evaluation import model_eval_sst, model_eval_multitask, model_eval_test_multitask, model_eval_fair, model_eval_prob
+from evaluation import model_eval_sst, model_eval_multitask, model_eval_test_multitask, model_eval_fair, model_eval_prob, model_eval_sst_diff
 
 
 TQDM_DISABLE=False
@@ -733,6 +733,37 @@ def test_multitask(args):
             for p, s in zip(test_sts_sent_ids, test_sts_y_pred):
                 f.write(f"{p} , {s} \n")
 
+def test_numb_SST(args):
+    '''Test and save predictions on the dev and test sets of all three tasks.'''
+    args.filepath = args.test_file
+    with torch.no_grad():
+        device = torch.device('cuda') if args.use_gpu else torch.device('cpu')
+        saved = torch.load(args.filepath)
+        config = saved['model_config']
+
+        model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
+        model.load_state_dict(saved['model'])
+        model = model.to(device)
+        print(f"Loaded model to test from {args.filepath}")
+
+        sst_test_data, num_labels,para_test_data, sts_test_data = \
+            load_multitask_data(args.sst_test,args.para_test, args.sts_test, split='test')
+
+        sst_dev_data, num_labels,para_dev_data, sts_dev_data = \
+            load_multitask_data(args.sst_dev,args.para_dev,args.sts_dev,split='dev')
+
+        sst_test_data = SentenceClassificationTestDataset(sst_test_data, args)
+        sst_dev_data = SentenceClassificationDataset(sst_dev_data, args)
+
+        sst_dev_dataloader = DataLoader(sst_dev_data, shuffle=False, batch_size=args.batch_size,
+                                        collate_fn=sst_dev_data.collate_fn)
+        
+        dic_1, dic_2 = model_eval_sst_diff(sst_dev_dataloader,model,device)
+        print(dic_1)
+        print(dic_2)
+
+
+
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -790,6 +821,8 @@ def get_args():
     parser.add_argument("--train_fairness_End", action='store_true')
     parser.add_argument("--fairness_file", type=str, default  = "" )
 
+    parser.add_argument("--onlySST", action='store_true' )
+
     args = parser.parse_args()
     return args
 
@@ -797,8 +830,10 @@ def get_args():
 if __name__ == "__main__":
     args = get_args()
     args.filepath = f'{args.fine_tune_mode}-{args.epochs}-{args.lr}-{args.reduced}-SMART-{args.SMART}_COS:{args.cosine_sim}_multitask.pt' # Save path.
+    if args.onlySST:
+        test_numb_SST(args)
     seed_everything(args.seed)
-    if not args.test_fairness_only:
+    if not args.test_fairness_only and not args.onlySST:
         if  not args.test_only:
             train_multitask(args)
         test_multitask(args)

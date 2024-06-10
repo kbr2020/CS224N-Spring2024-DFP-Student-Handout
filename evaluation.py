@@ -119,6 +119,39 @@ def model_eval_sst(dataloader, model, device):
 
     return acc, f1, y_pred, y_true, sents, sent_ids
 
+def model_eval_sst_diff(dataloader, model, device):
+    model.eval()  # Switch to eval model, will turn off randomness like dropout.
+    y_true = []
+    y_pred = []
+    sents = []
+    sent_ids = []
+    for step, batch in enumerate(tqdm(dataloader, desc=f'eval', disable=TQDM_DISABLE)):
+        b_ids, b_mask, b_labels, b_sents, b_sent_ids = batch['token_ids'],batch['attention_mask'],  \
+                                                        batch['labels'], batch['sents'], batch['sent_ids']
+
+        b_ids = b_ids.to(device)
+        b_mask = b_mask.to(device)
+
+        logits = model.predict_sentiment(b_ids, b_mask)
+        logits = logits.detach().cpu().numpy()
+        preds = np.argmax(logits, axis=1).flatten()
+
+        b_labels = b_labels.flatten()
+        y_true.extend(b_labels)
+        y_pred.extend(preds)
+        sents.extend(b_sents)
+        sent_ids.extend(b_sent_ids)
+
+    f1 = f1_score(y_true, y_pred, average='macro')
+    y_true = np.array(y_true)
+    y_pred = np.array(y_pred)
+    mask = (y_true != y_pred)
+    a = y_true[mask]
+    unique, counts = np.unique(a, return_counts=True)
+    unique2, counts2 = np.unique(y_true, return_counts=True)
+
+    return zip(unique,counts), zip(unique2, counts2)
+
 
 # Evaluate multitask model on dev sets.
 def model_eval_multitask(sentiment_dataloader,
