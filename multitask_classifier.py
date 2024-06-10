@@ -491,12 +491,14 @@ def train_fairness(args):
     optimizer = AdamW(model.parameters(), lr=lr)
 
 
-    best_dev_fair_acc = 0
+    best_acc_combined = 0
     fair_prob_1, fair_prob_2 = model_eval_prob(fair_train_data_loader,model,device)
     print(len(fair_prob_1))
     for epoch in range(args.epochs):
         total_loss_fair = 0
         num_batches_fair = 0
+        train_loss_sst = 0
+        num_batches_sst = 0
         for step, batch in enumerate(tqdm(fair_train_data_loader, desc=f'train', disable=TQDM_DISABLE)):
             (b_ids1, b_mask1,
              b_ids2, b_mask2,
@@ -520,8 +522,8 @@ def train_fairness(args):
 
             loss = (F.kl_div(F.log_softmax(logits_1,dim = -1),F.softmax(logits_2,dim = -1),reduction='sum') + 
                     F.kl_div(F.log_softmax(logits_2,dim = -1),F.softmax(logits_1,dim = -1),reduction='sum')) / args.batch_size
-            loss = loss+ (0*F.kl_div(F.log_softmax(logits_1,dim = -1),F_prob_1,reduction='sum') + 
-                    0*F.kl_div(F.log_softmax(logits_2,dim = -1),F_prob_2,reduction='sum')) / args.batch_size
+            # loss = loss+ (0*F.kl_div(F.log_softmax(logits_1,dim = -1),F_prob_1,reduction='sum') + 
+            #       0*F.kl_div(F.log_softmax(logits_2,dim = -1),F_prob_2,reduction='sum')) / args.batch_size
             loss_v = loss.item()
 
             loss.backward()
@@ -530,16 +532,39 @@ def train_fairness(args):
             total_loss_fair += loss_v
             num_batches_fair += 1
 
+
+        for batch  in tqdm(sst_train_dataloader , desc=f'train-{epoch}', disable=TQDM_DISABLE):
+            b_ids, b_mask, b_labels = (batch['token_ids'],
+                                       batch['attention_mask'], batch['labels'])
+
+            b_ids = b_ids.to(device)
+            b_mask = b_mask.to(device)
+            b_labels = b_labels.to(device)
+
+            optimizer.zero_grad()
+            logits = model.predict_sentiment(b_ids, b_mask)
+            loss = F.cross_entropy(logits, b_labels.view(-1), reduction='sum') / args.batch_size
+            loss_v = loss.item()
+            
+            loss.backward()
+            optimizer.step()
+
+            train_loss_sst += loss_v
+            num_batches_sst += 1
+
+        
         fair_accuracy, fair_y_pred, fair_sent_ids =  model_eval_fair(fair_dev_data_loader,model,device)
         sst_acc, f1, y_pred, y_true, sents, sent_ids  =  model_eval_sst(sst_dev_dataloader, model, device)
         
-
-        if fair_accuracy >=  best_dev_fair_acc:
+        train_loss_sst = train_loss_sst / (num_batches_sst)
+        train_loss_fair = train_loss_fair / (num_batches_fair)
+        print(num_batches_fair)
+        if 2*sst_acc + fair_accuracy >=  best_acc_combined:
             best_dev_fair_acc = fair_accuracy
             save_model(model, optimizer, args, config, args.filepath)
         
         print(f"Epoch {epoch}: train loss fair:: {total_loss_fair :.3f}, dev acc :: {fair_accuracy :.3f}")
-        print(f"Epoch {epoch} sst_acc dev :: {sst_acc :.3f}")
+        print(f"Epoch {epoch}: train loss fair:: {train_loss_sst :.3f} sst_acc dev :: {sst_acc :.3f}")
 
 
 
