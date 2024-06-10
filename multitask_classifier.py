@@ -466,11 +466,15 @@ def train_fairness(args):
     model = MultitaskBERT(config,cosinus_m=args.cosine_sim)
     model.load_state_dict(saved['model'])
     model = model.to(device)
-
+  
+    sst_train_data, num_labels,para_train_data, sts_train_data = load_multitask_data(args.sst_train,args.para_train,args.sts_train, split ='train')
     sst_dev_data, num_labels,para_dev_data, sts_dev_data = load_multitask_data(args.sst_dev,args.para_dev,args.sts_dev, split ='train')
 
+    sst_train_data = SentenceClassificationDataset(sst_train_data, args)
     sst_dev_data = SentenceClassificationDataset(sst_dev_data, args)
 
+    sst_train_dataloader = DataLoader(sst_train_data, shuffle=True, batch_size=args.batch_size,
+                                      collate_fn=sst_train_data.collate_fn)
     sst_dev_dataloader = DataLoader(sst_dev_data, shuffle=False, batch_size=args.batch_size,
                                     collate_fn=sst_dev_data.collate_fn)
 
@@ -516,7 +520,7 @@ def train_fairness(args):
 
             loss = (F.kl_div(F.log_softmax(logits_1,dim = -1),F.softmax(logits_2,dim = -1),reduction='sum') + 
                     F.kl_div(F.log_softmax(logits_2,dim = -1),F.softmax(logits_1,dim = -1),reduction='sum')) / args.batch_size
-            loss = loss+ (0.1*F.kl_div(F.log_softmax(logits_1,dim = -1),F_prob_1,reduction='sum') + 
+            loss = loss+ (0*F.kl_div(F.log_softmax(logits_1,dim = -1),F_prob_1,reduction='sum') + 
                     0*F.kl_div(F.log_softmax(logits_2,dim = -1),F_prob_2,reduction='sum')) / args.batch_size
             loss_v = loss.item()
 
