@@ -77,7 +77,7 @@ def model_eval_fair(fair_dataloader, model, device):
             y_hat_1 = logits_1.argmax(dim=-1).flatten().cpu().numpy()
             y_hat_2 = logits_2.argmax(dim=-1).flatten().cpu().numpy()
 
-            y_hat = np.abs(y_hat_1 - y_hat_2)
+            y_hat = y_hat_1 - y_hat_2
             b_labels = b_labels.flatten().cpu().numpy()
 
             fair_pred.extend(y_hat)
